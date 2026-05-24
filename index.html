@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;0,900;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 
@@ -343,16 +343,27 @@ a:hover{color:var(--accent-hover)}
   font-family:var(--font-sans);
 }
 
-/* Code blocks */
+/* Code blocks — bright editorial exhibit style */
 .article-body pre{
-  margin:20px 0;border-radius:var(--radius);
-  overflow-x:auto;background:var(--bg-code) !important;
+  margin:24px 0;border-radius:var(--radius);
+  overflow-x:auto;
+  background:var(--bg-card);
   border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  position:relative;
+}
+
+.article-body pre::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:3px;background:linear-gradient(90deg,var(--accent),transparent);
+  border-radius:var(--radius) var(--radius) 0 0;
+  opacity:.4;
 }
 
 .article-body pre code{
   display:block;padding:20px 24px;font-size:.82rem;
-  line-height:1.6;color:#cdd6f4;font-family:var(--font-mono);
+  line-height:1.7;color:var(--text);font-family:var(--font-mono);
+  background:transparent;
 }
 
 .article-body code{
@@ -362,8 +373,14 @@ a:hover{color:var(--accent-hover)}
 }
 
 .article-body pre code{
-  background:transparent;color:#cdd6f4;padding:0;
+  background:transparent;color:inherit;padding:0;
 }
+
+/* Dark theme code blocks get slightly darker card */
+[data-theme="dark"] .article-body pre{
+  background:#1a1a22;border-color:#2a2a35;
+}
+[data-theme="dark"] .article-body pre code{color:#d4d4da}
 
 /* Tables */
 .article-body table{
@@ -472,11 +489,13 @@ a:hover{color:var(--accent-hover)}
 }
 
 .test-result .test-output{
-  background:var(--bg-code);border-radius:var(--radius);
+  background:var(--bg-card);border-radius:var(--radius);
+  border:1px solid var(--border);border-left:4px solid var(--accent);
   padding:14px 18px;font-family:var(--font-mono);
-  font-size:.78rem;color:#cdd6f4;overflow-x:auto;
-  line-height:1.5;
+  font-size:.78rem;color:var(--text);overflow-x:auto;
+  line-height:1.6;
 }
+[data-theme="dark"] .test-result .test-output{background:#1a1a22}
 
 /* ═══ Responsive ═══ */
 @media(max-width:900px){
@@ -607,7 +626,7 @@ a:hover{color:var(--accent-hover)}
 </main>
 
 <!-- ═══ Scripts ═══ -->
-<script src="chapters.js?v=4"></script>
+<script src="chapters.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>

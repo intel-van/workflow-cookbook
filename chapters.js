@@ -2278,3 +2278,480 @@ See chapters 06 for detailed usage and decision tree.
 - Standard JS built-ins (JSON, Math, Array, etc.) available
 `
 };
+
+// ═══ Ch08: Monitoring & Debugging ═══
+CONTENT['ch08'] = {
+zh: `
+Workflow 运行时，你需要知道它在做什么、哪里卡住了、为什么失败了。
+
+## phase()：进度分组
+
+\`phase('Title')\` 将后续的 agent 调用归入一个视觉分组。在 \`/workflows\` 命令中显示为树状结构：
+
+\`\`\`
+▸ sharded-review (running)
+  ▸ Scan ✓
+  ▸ Review
+    ▸ review:src (running)
+    ▸ review:lib (running)
+    ▸ review:tests ✓
+  ▸ Verify (pending)
+\`\`\`
+
+## log()：进度消息
+
+\`log(message)\` 向用户发送一条进度消息，显示在进度树上方。
+
+\`\`\`javascript
+log('Found ' + bugs.length + ' bugs so far')
+log('Starting verification of ' + findings.length + ' findings')
+\`\`\`
+
+## /workflows 命令
+
+在 Claude Code 中输入 \`/workflows\` 可以实时查看所有正在运行的 workflow 的进度。
+
+## 调试失败的 Workflow
+
+当 workflow 失败时，常见原因和排查方法：
+
+| 症状 | 可能原因 | 排查方法 |
+|------|---------|---------|
+| agent 返回 null | 用户跳过或 agent 出错 | 用 \`.filter(Boolean)\` 过滤 |
+| Schema 验证失败 | Schema 过于严格或模型不理解 | 简化 Schema，添加 description |
+| 超时 | agent 任务太复杂 | 拆分任务，减少每个 agent 的工作量 |
+| 结果不符预期 | prompt 不够自包含 | 在 prompt 中提供更多上下文 |
+
+<div class="callout tip">
+<div class="callout-title">调试技巧</div>
+在开发 workflow 时，先用单个 agent 测试每个阶段，确认输出格式正确后再组合。用 <code>log(JSON.stringify(result, null, 2))</code> 打印中间结果。
+</div>
+
+## 本章小结
+
+- \`phase()\` 提供视觉化的进度分组
+- \`log()\` 发送实时进度消息
+- \`/workflows\` 实时监控运行状态
+- 调试策略：先单阶段测试，再组合
+`,
+en: `
+When a workflow is running, you need to know what it's doing, where it's stuck, and why it failed.
+
+## phase(): Progress Grouping
+
+\`phase('Title')\` groups subsequent agent calls into a visual group, displayed as a tree in \`/workflows\`.
+
+## log(): Progress Messages
+
+\`log(message)\` sends a progress message to the user, shown above the progress tree.
+
+## /workflows Command
+
+Type \`/workflows\` in Claude Code to see real-time progress of all running workflows.
+
+## Debugging Failed Workflows
+
+| Symptom | Possible Cause | Fix |
+|---------|---------------|-----|
+| agent returns null | User skipped or agent errored | Filter with \`.filter(Boolean)\` |
+| Schema validation fails | Schema too strict | Simplify, add descriptions |
+| Timeout | Task too complex | Split into smaller tasks |
+| Unexpected results | Prompt not self-contained | Add more context to prompt |
+
+## Chapter Summary
+
+- \`phase()\` provides visual progress grouping
+- \`log()\` sends real-time progress messages
+- \`/workflows\` for live monitoring
+- Debug strategy: test each stage individually first, then combine
+`
+};
+
+// ═══ Ch21: Pattern Extraction ═══
+CONTENT['ch21'] = {
+zh: `
+从他人的 Workflow 系统中提取可复用模式，是构建自己的 Workflow 库的最快路径。本章提供一套系统化的提取方法论。
+
+## 提取方法论：五步法
+
+\`\`\`
+1. 读 → 理解系统的设计哲学和架构
+2. 解构 → 拆解出独立的可复用模式
+3. 抽象 → 剥离系统特定的实现细节
+4. 适配 → 转化为原生 Workflow API
+5. 验证 → 在真实场景中测试
+\`\`\`
+
+## 示例 1：从 ccg-workflow 提取"循环检测"
+
+**原始实现**（ccg-workflow）：Hook 写入 \`.turns.json\`，当同一个 phase + nextAction 重复 3 次，注入 LOOP DETECTED 警告。
+
+**抽象为 Workflow 模式**：
+
+\`\`\`javascript
+// 通用循环检测模式
+function createLoopDetector(maxRepeats = 3) {
+  const history = []
+  return function detect(state) {
+    history.push(JSON.stringify(state))
+    if (history.length > maxRepeats) {
+      const recent = history.slice(-maxRepeats)
+      if (recent.every(s => s === recent[0])) {
+        return { loopDetected: true, repeatedState: state }
+      }
+    }
+    return { loopDetected: false }
+  }
+}
+
+// 在 workflow 中使用
+let round = 0
+const detector = createLoopDetector(3)
+while (round < 10) {
+  const result = await agent('Fix the issue', { schema: FIX_SCHEMA })
+  const check = detector({ phase: 'fix', action: result.action })
+  if (check.loopDetected) {
+    log('Loop detected! Changing strategy.')
+    break
+  }
+  round++
+}
+\`\`\`
+
+## 示例 2：从 superpowers 提取"反理性化表"
+
+**原始实现**（superpowers）：每个 Skill 包含红旗表，列出 agent 可能的借口及反驳。
+
+**抽象为 Workflow prompt 模式**：
+
+\`\`\`javascript
+const ANTI_RATIONALIZATION = \`
+RED FLAGS — if you find yourself thinking any of these, STOP:
+| Rationalization | Why it's wrong |
+|----------------|---------------|
+| "Just this once" | Rules exist for the edge cases |
+| "It's obvious" | What's obvious to you may be wrong |
+| "I already checked" | Show the evidence, don't claim it |
+| "The spirit, not the letter" | Violating the letter IS violating the spirit |
+\`
+
+const result = await agent(
+  'Review this code for security issues. ' + ANTI_RATIONALIZATION,
+  { schema: REVIEW_SCHEMA }
+)
+\`\`\`
+
+## 示例 3：从 OMC 提取"模糊度门控"
+
+**原始实现**（oh-my-claudecode）：数学化计算需求模糊度，低于阈值才进入下一阶段。
+
+**抽象为 Workflow 模式**：
+
+\`\`\`javascript
+const AMBIGUITY_SCHEMA = {
+  type: 'object',
+  properties: {
+    score: { type: 'number', minimum: 0, maximum: 1 },
+    unclear: { type: 'array', items: { type: 'string' } },
+    question: { type: 'string' },
+  },
+  required: ['score', 'unclear'],
+}
+
+let ambiguity = 1.0
+while (ambiguity > 0.2) {
+  const assessment = await agent(
+    'Assess the ambiguity of this requirement. Score 0-1 (0=crystal clear, 1=completely ambiguous). List unclear points and ask ONE clarifying question.',
+    { schema: AMBIGUITY_SCHEMA }
+  )
+  ambiguity = assessment.score
+  if (ambiguity > 0.2) {
+    log('Ambiguity: ' + ambiguity + '. Asking: ' + assessment.question)
+    // In a real workflow, you'd collect user answers here
+  }
+}
+\`\`\`
+
+## 示例 4：从 OmO 提取"类别路由"
+
+**原始实现**（oh-my-openagent）：按任务类别（ultrabrain/deep/quick）路由到最优模型。
+
+**抽象为 Workflow 模式**：
+
+\`\`\`javascript
+const MODEL_MAP = {
+  explore: 'haiku',     // 快速搜索
+  implement: 'sonnet',  // 标准执行
+  review: 'opus',       // 深度审查
+  summarize: 'haiku',   // 摘要
+}
+
+function routedAgent(prompt, category, opts = {}) {
+  return agent(prompt, {
+    ...opts,
+    model: MODEL_MAP[category] || 'sonnet',
+    label: opts.label || category,
+  })
+}
+
+// 使用
+const summary = await routedAgent('Summarize this file', 'summarize')
+const review = await routedAgent('Review for bugs', 'review')
+\`\`\`
+
+## 提取清单
+
+从任何 Workflow 系统中，你可以提取以下类别的模式：
+
+| 类别 | 示例 | 来源 |
+|------|------|------|
+| **控制流** | 循环检测、状态面包屑 | ccg-workflow |
+| **质量保证** | 反理性化表、模糊度门控 | superpowers, OMC |
+| **路由策略** | 类别路由、tier 分层 | OmO, OMC |
+| **数据管理** | 智慧笔记本、Spec 演进 | OmO, ccg-workflow |
+| **防御机制** | 确认偏差防护、CSO 描述 | superpowers |
+
+## 本章小结
+
+- 五步提取法：读 → 解构 → 抽象 → 适配 → 验证
+- 每个系统都有值得提取的独特模式
+- 提取的关键是剥离系统特定实现，保留通用逻辑
+- 转化为原生 Workflow API 后在真实场景验证
+`,
+en: `
+Extracting reusable patterns from others' workflow systems is the fastest path to building your own library.
+
+## Extraction Methodology: Five Steps
+
+\`\`\`
+1. Read → Understand the system's design philosophy
+2. Deconstruct → Break down into independent reusable patterns
+3. Abstract → Strip system-specific implementation details
+4. Adapt → Convert to native Workflow API
+5. Verify → Test in real scenarios
+\`\`\`
+
+## Example 1: Loop Detection from ccg-workflow
+
+Abstracted as a generic loop detector function that tracks state history and alerts after N repeats.
+
+## Example 2: Anti-Rationalization Tables from superpowers
+
+Abstracted as a prompt injection pattern that lists common rationalizations and their rebuttals.
+
+## Example 3: Ambiguity Gating from OMC
+
+Abstracted as a while-loop that repeatedly assesses requirement ambiguity until below threshold.
+
+## Example 4: Category Routing from OmO
+
+Abstracted as a model routing map that selects optimal model per task category.
+
+## Extraction Checklist
+
+| Category | Examples | Source |
+|----------|----------|--------|
+| **Control flow** | Loop detection, state breadcrumbs | ccg-workflow |
+| **Quality** | Anti-rationalization, ambiguity gating | superpowers, OMC |
+| **Routing** | Category routing, tier layering | OmO, OMC |
+| **Data** | Wisdom notebooks, Spec Evolution | OmO, ccg-workflow |
+| **Defense** | Confirmation bias prevention, CSO | superpowers |
+
+## Chapter Summary
+
+- Five-step extraction: Read → Deconstruct → Abstract → Adapt → Verify
+- Every system has unique extractable patterns
+- Key is stripping system-specific implementation, keeping universal logic
+- Verify adapted patterns in real scenarios with native Workflow API
+`
+};
+
+// ═══ Ch22: Build Your Workflow Library ═══
+CONTENT['ch22'] = {
+zh: `
+最后一章：从零构建属于你自己的可复用 Workflow 库。
+
+## 目录结构
+
+\`\`\`
+~/.claude/workflows/           # Named workflows（推荐位置）
+├── code-review/
+│   ├── sharded-review.js      # 分片审查
+│   └── pr-review.js           # PR 多角色审查
+├── quality/
+│   ├── gcf-loop.js            # 生成-批评-修复
+│   └── bug-hunter.js          # Bug 猎手
+├── research/
+│   ├── deep-research.js       # 深度研究
+│   └── eval.js                # Prompt/Agent 评估
+└── utils/
+    ├── schemas.js             # 共享 Schema 定义
+    └── patterns.js            # 共享模式（循环检测等）
+\`\`\`
+
+<div class="callout info">
+<div class="callout-title">Named Workflows</div>
+放在 <code>.claude/workflows/</code> 目录下的 workflow 文件可以通过 <code>Workflow({ name: 'sharded-review' })</code> 直接调用，无需指定完整路径。
+</div>
+
+## 命名规范
+
+| 规范 | 示例 | 说明 |
+|------|------|------|
+| 文件名 | \`kebab-case.js\` | 与 meta.name 一致 |
+| meta.name | \`sharded-review\` | kebab-case，全小写 |
+| meta.description | 一行描述 | 显示在权限对话框 |
+| phase titles | 动词开头 | Scan / Review / Verify |
+| labels | \`类别:具体\` | \`review:src\` / \`verify:auth\` |
+
+## 从 Skill 到 Named Workflow 的演进
+
+\`\`\`
+阶段 1: 内联脚本
+  → 在对话中直接用 Workflow({ script: '...' })
+  → 适合：实验、一次性任务
+
+阶段 2: 脚本文件
+  → 保存为文件，用 Workflow({ scriptPath: '/path/to/script.js' })
+  → 适合：迭代开发、反复运行
+
+阶段 3: Named Workflow
+  → 放入 .claude/workflows/，用 Workflow({ name: 'xxx' })
+  → 适合：团队共享、长期维护
+
+阶段 4: 参数化
+  → 通过 args 传参，Workflow({ name: 'xxx', args: { target: 'src/' } })
+  → 适合：通用化、多场景复用
+\`\`\`
+
+## 参数化示例
+
+\`\`\`javascript
+export const meta = {
+  name: 'review-dir',
+  description: 'Review a directory for issues',
+  phases: [{ title: 'Review' }, { title: 'Verify' }],
+}
+
+// args 来自 Workflow({ args: { dir: 'src/', depth: 'thorough' } })
+const targetDir = args?.dir || 'src/'
+const depth = args?.depth || 'normal'
+
+phase('Review')
+const result = await agent(
+  'Review all code in ' + targetDir + '. Depth: ' + depth,
+  { schema: REVIEW_SCHEMA }
+)
+// ...
+\`\`\`
+
+## 版本管理
+
+- 用 git 管理你的 workflow 库
+- 每个 workflow 的 meta.description 包含版本信息
+- 重大变更时更新 meta.name（如 \`sharded-review-v2\`）
+- 用 resumeFromRunId 测试修改是否破坏了缓存兼容性
+
+## 共享 Schema 库
+
+\`\`\`javascript
+// utils/schemas.js — 可在多个 workflow 中复用
+export const FINDING_SCHEMA = {
+  type: 'object',
+  properties: {
+    findings: { type: 'array', items: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        severity: { type: 'string', enum: ['low','medium','high','critical'] },
+        file: { type: 'string' },
+      },
+      required: ['title', 'severity'],
+    }},
+  },
+  required: ['findings'],
+}
+
+export const VERDICT_SCHEMA = {
+  type: 'object',
+  properties: {
+    isReal: { type: 'boolean' },
+    explanation: { type: 'string' },
+  },
+  required: ['isReal'],
+}
+\`\`\`
+
+## 实操：构建一个 3-Workflow 库
+
+跟随本书的 Recipe 章节，你已经有了足够的模式来构建一个基础库：
+
+1. **sharded-review.js** — Ch09 的分片审查
+2. **gcf-loop.js** — Ch11 的生成-批评-修复
+3. **adversarial-verify.js** — Ch19 的对抗验证
+
+这三个 workflow 覆盖了代码审查、迭代改进和质量保证三个核心场景。
+
+## 本章小结
+
+- 推荐目录：\`~/.claude/workflows/\` 按用途分子目录
+- 命名规范：kebab-case，与 meta.name 一致
+- 演进路径：内联 → 文件 → Named → 参数化
+- 共享 Schema 库减少重复定义
+- 从 3 个核心 workflow 起步，逐步扩展
+`,
+en: `
+Final chapter: build your own reusable Workflow library from scratch.
+
+## Directory Structure
+
+\`\`\`
+~/.claude/workflows/
+├── code-review/
+│   ├── sharded-review.js
+│   └── pr-review.js
+├── quality/
+│   ├── gcf-loop.js
+│   └── bug-hunter.js
+├── research/
+│   └── deep-research.js
+└── utils/
+    ├── schemas.js
+    └── patterns.js
+\`\`\`
+
+## Naming Conventions
+
+- File names: \`kebab-case.js\`, matching meta.name
+- Phase titles: start with verbs (Scan / Review / Verify)
+- Labels: \`category:specific\` format
+
+## Evolution Path
+
+\`\`\`
+Stage 1: Inline scripts → experiments
+Stage 2: Script files → iterative development
+Stage 3: Named workflows → team sharing
+Stage 4: Parameterized → multi-scenario reuse
+\`\`\`
+
+## Shared Schema Library
+
+Create reusable schemas in a utils/ directory to reduce duplication across workflows.
+
+## Hands-on: Build a 3-Workflow Library
+
+Following this book's Recipe chapters, build a starter library:
+1. **sharded-review.js** — Sharded code review (Ch09)
+2. **gcf-loop.js** — Generate-Critique-Fix (Ch11)
+3. **adversarial-verify.js** — Adversarial verification (Ch19)
+
+## Chapter Summary
+
+- Recommended directory: \`~/.claude/workflows/\` with subdirectories by purpose
+- Naming: kebab-case, matching meta.name
+- Evolution: inline → file → named → parameterized
+- Shared Schema libraries reduce duplication
+- Start with 3 core workflows, expand gradually
+`
+};
