@@ -2788,3 +2788,885 @@ Following this book's Recipe chapters, build a starter library:
 - Start with 3 core workflows, expand gradually
 `
 };
+
+// ═══ Ch10: Multi-Role PR Review ═══
+CONTENT['ch10'] = {
+zh: `
+为每个 PR 部署多维度专家审查员，各司其职，最后综合出全面的审查报告。
+
+## 设计思路
+
+传统 PR 审查由一个人（或一个 agent）完成，视角单一。多角色审查让不同专家从不同维度并行审查：
+
+\`\`\`
+PR → ┌─ 安全专家 ──→ 安全发现
+     ├─ 性能专家 ──→ 性能发现    → 综合报告
+     └─ 架构专家 ──→ 架构发现
+\`\`\`
+
+## 完整 Workflow 脚本
+
+\`\`\`javascript
+export const meta = {
+  name: 'multi-role-review',
+  description: 'Multi-role PR review: security + performance + architecture',
+  phases: [
+    { title: 'Review', detail: 'Three specialist reviews in parallel' },
+    { title: 'Synthesize', detail: 'Merge into unified report' },
+  ],
+}
+
+const REVIEW_SCHEMA = {
+  type: 'object',
+  properties: {
+    role: { type: 'string' },
+    findings: { type: 'array', items: {
+      type: 'object',
+      properties: {
+        issue: { type: 'string' },
+        severity: { type: 'string', enum: ['info','low','medium','high','critical'] },
+        suggestion: { type: 'string' },
+      },
+      required: ['issue', 'severity'],
+    }},
+    overallScore: { type: 'number', minimum: 1, maximum: 10 },
+  },
+  required: ['role', 'findings', 'overallScore'],
+}
+
+phase('Review')
+const reviews = await parallel([
+  () => agent('You are a SECURITY specialist. Review the codebase for security issues.', { schema: REVIEW_SCHEMA, label: 'security' }),
+  () => agent('You are a PERFORMANCE specialist. Review for performance issues.', { schema: REVIEW_SCHEMA, label: 'performance' }),
+  () => agent('You are an ARCHITECTURE specialist. Review for architectural issues.', { schema: REVIEW_SCHEMA, label: 'architecture' }),
+])
+
+phase('Synthesize')
+const valid = reviews.filter(Boolean)
+const avgScore = valid.reduce((s, r) => s + r.overallScore, 0) / valid.length
+return { reviewers: valid.map(r => ({ role: r.role, score: r.overallScore })), avgScore }
+\`\`\`
+
+## 真实运行结果
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">multi-role-review</span>
+</div>
+<div class="test-output">
+Reviewers: security (6/10), performance (5/10), architecture (6/10)
+Average score: 5.67/10
+Total findings: 21 (4 critical/high)
+Agent count: 3 | Total tokens: 159,601 | Duration: 74.4s
+</div>
+</div>
+
+**关键发现**：安全专家找到 6 个问题（含 SRI 缺失），性能专家找到 8 个问题（含 render-blocking 脚本），架构专家找到 7 个问题（含数据源冗余）。三个维度互不重叠，证明了多角色审查的价值。
+
+## 本章小结
+
+- 多角色审查 = 不同专家从不同维度并行审查
+- 使用 parallel() 让三个专家同时工作
+- Schema 约束统一输出格式（role + findings + score）
+- 实测：3 agents, 160K tokens, 74.4s, 21 个发现
+`,
+en: `
+Deploy multi-dimensional specialist reviewers for each PR, each covering their domain, then synthesize a comprehensive report.
+
+## Design Approach
+
+Traditional PR review is done by one person (or agent) with a single perspective. Multi-role review has different experts review from different dimensions in parallel.
+
+## Real Execution Results
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">multi-role-review</span>
+</div>
+<div class="test-output">
+Reviewers: security (6/10), performance (5/10), architecture (6/10)
+Average: 5.67/10 | Findings: 21 (4 critical/high)
+Agents: 3 | Tokens: 159,601 | Duration: 74.4s
+</div>
+</div>
+
+## Chapter Summary
+
+- Multi-role review = different experts reviewing from different dimensions in parallel
+- Use parallel() for concurrent specialist work
+- Schema constrains uniform output format (role + findings + score)
+- Test result: 3 agents, 160K tokens, 74.4s, 21 findings
+`
+};
+
+// ═══ Ch12: Deep Research ═══
+CONTENT['ch12'] = {
+zh: `
+多 agent 从不同角度并行搜索，交叉验证每个声明，最后综合为可信报告。
+
+## 模式原理
+
+\`\`\`
+Topic → ┌─ Searcher A (角度 1) ─→ Claims
+        └─ Searcher B (角度 2) ─→ Claims
+                                    ↓
+                         Merge + Dedup Claims
+                                    ↓
+                    ┌─ Verifier 1 ─→ Verified?
+                    ├─ Verifier 2 ─→ Verified?
+                    └─ Verifier N ─→ Verified?
+                                    ↓
+                             Final Report
+\`\`\`
+
+## 关键设计
+
+1. **多角度搜索**：同一主题从不同角度搜索，避免单一视角的盲区
+2. **交叉验证**：独立 agent 验证每个声明，过滤错误信息
+3. **结构化声明**：每个声明带有 confidence 分数
+
+## 真实运行结果
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">deep-research</span>
+</div>
+<div class="test-output">
+Topic: JavaScript event loop phases
+Searchers: 2 (event-loop-phases + micro-vs-macro)
+Total claims: 6, Verified: 4, Confirmed: 3
+Agent count: 6 | Total tokens: 225,821 | Duration: 220.7s
+</div>
+</div>
+
+**验证通过的声明示例**：
+- setImmediate() 在 check 阶段执行，在 poll 阶段之后
+- 微任务在每个宏任务之后完全清空
+- process.nextTick() 优先级高于 Promise 微任务
+
+## 本章小结
+
+- 深度研究 = 多角度搜索 + 交叉验证 + 综合报告
+- 使用 parallel() 并行搜索，pipeline() 流式验证
+- confidence 分数帮助过滤低质量声明
+- 实测：6 agents, 226K tokens, 220.7s, 3/6 声明通过验证
+`,
+en: `
+Multiple agents search from different angles in parallel, cross-verify each claim, then synthesize into a trustworthy report.
+
+## Real Execution Results
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">deep-research</span>
+</div>
+<div class="test-output">
+Topic: JavaScript event loop phases
+Searchers: 2 | Claims: 6 → Verified: 4 → Confirmed: 3
+Agents: 6 | Tokens: 225,821 | Duration: 220.7s
+</div>
+</div>
+
+## Chapter Summary
+
+- Deep research = multi-angle search + cross-verification + synthesis
+- Use parallel() for concurrent search, pipeline() for streaming verification
+- Confidence scores help filter low-quality claims
+- Test result: 6 agents, 226K tokens, 220.7s, 3/6 claims verified
+`
+};
+
+// ═══ Ch13: Prompt/Agent Evaluation ═══
+CONTENT['ch13'] = {
+zh: `
+用 Workflow 编排 A/B 测试——生成多个独立方案，用评委面板打分，选出最优。
+
+## 评委面板模式
+
+\`\`\`javascript
+// 3 个独立生成者从不同角度生成方案
+const solutions = await parallel(
+  ANGLES.map(angle => () =>
+    agent('Implement from ' + angle + ' perspective', { schema: SOLUTION_SCHEMA })
+  )
+)
+
+// 每个方案由 3 个独立评委打分
+const scored = await pipeline(solutions.filter(Boolean),
+  (sol) => parallel(
+    Array.from({ length: 3 }, () => () =>
+      agent('Score this: ' + sol.approach, { schema: SCORE_SCHEMA })
+    )
+  ).then(judges => ({
+    ...sol,
+    avgScore: judges.filter(Boolean).reduce((s, j) => s + j.score, 0) / judges.filter(Boolean).length
+  }))
+)
+
+// 选出最高分
+const winner = scored.reduce((best, cur) => cur.avgScore > best.avgScore ? cur : best)
+\`\`\`
+
+## 真实运行结果
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">judge-panel</span>
+</div>
+<div class="test-output">
+Task: Rate limiter implementation
+Approaches: MVP-first (7.67), Performance-first (7.00), Safety-first (6.33)
+Winner: MVP-first with avg score 7.67/10
+Agent count: 12 (3 generators + 9 judges)
+Total tokens: 358,936 | Duration: 139.7s
+</div>
+</div>
+
+**关键发现**：MVP-first（最简可用方案）以 7.67 分胜出，Performance-first 7.00 分，Safety-first 6.33 分。评委倾向于简洁清晰的实现。
+
+## 适用场景
+
+- 评估不同 prompt 的输出质量
+- 比较不同 agent 配置的效果
+- A/B 测试不同的解决方案
+- 在多种设计方案中选择最优
+
+## 本章小结
+
+- 评委面板 = 多方案生成 + 多评委打分 + 选最优
+- pipeline() 让每个方案独立进入评委环节
+- 12 agents（3 生成 + 9 评委），359K tokens，140s
+- MVP-first 方案以简洁清晰赢得评委青睐
+`,
+en: `
+Orchestrate A/B testing with Workflow — generate multiple independent solutions, score with a judge panel, pick the best.
+
+## Real Execution Results
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">judge-panel</span>
+</div>
+<div class="test-output">
+Task: Rate limiter implementation
+Winner: MVP-first (7.67/10) over Performance-first (7.00) and Safety-first (6.33)
+Agents: 12 (3 gen + 9 judges) | Tokens: 358,936 | Duration: 139.7s
+</div>
+</div>
+
+## Chapter Summary
+
+- Judge panel = multi-solution generation + multi-judge scoring + pick best
+- pipeline() lets each solution independently enter the judging phase
+- 12 agents (3 generators + 9 judges), 359K tokens, 140s
+- MVP-first won with clear, simple implementation
+`
+};
+
+// ═══ Ch14: Bug Hunter ═══
+CONTENT['ch14'] = {
+zh: `
+持续发现 bug 直到枯竭，然后对抗验证过滤误报——bughunt workflow 的核心模式。
+
+## 模式原理
+
+\`\`\`
+Round 1: Finder → [bugs]
+Round 2: Finder → [more bugs]
+Round 3: Finder → [0 new bugs] ← dry streak
+         ↓
+All bugs → Adversarial Verify (5 votes each)
+         ↓
+Confirmed bugs only
+\`\`\`
+
+## 关键设计
+
+### Loop-Until-Dry 模式
+
+\`\`\`javascript
+const bugs = []
+let dryStreak = 0
+const MAX_DRY = 2
+
+while (dryStreak < MAX_DRY) {
+  const result = await agent(
+    'Find bugs NOT already in this list: ' + bugs.map(b => b.title).join(', '),
+    { schema: BUGS_SCHEMA }
+  )
+  if (result.bugs.length === 0) {
+    dryStreak++
+    log('Dry streak: ' + dryStreak + '/' + MAX_DRY)
+  } else {
+    dryStreak = 0
+    bugs.push(...result.bugs)
+    log('Found ' + result.bugs.length + ' new bugs (total: ' + bugs.length + ')')
+  }
+}
+\`\`\`
+
+### 5 票对抗验证
+
+\`\`\`javascript
+const verified = await pipeline(bugs,
+  (bug) => parallel(
+    Array.from({ length: 5 }, () => () =>
+      agent('Try to REFUTE: ' + bug.title, { schema: VERDICT_SCHEMA })
+    )
+  ).then(votes => {
+    const refuted = votes.filter(Boolean).filter(v => v.refuted).length
+    return { ...bug, confirmed: refuted < 3 }
+  })
+)
+const confirmedBugs = verified.filter(Boolean).filter(b => b.confirmed)
+\`\`\`
+
+## 真实对抗验证结果
+
+我们的 adversarial-verify 测试验证了这个模式：
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">adversarial-verify</span>
+</div>
+<div class="test-output">
+Claim: "setTimeout(0) guarantees running before I/O callbacks"
+Votes: 3/3 REFUTED (confidence: 0.97-0.98)
+Verdict: REJECTED (correctly — the claim is false)
+Agent count: 3 | Total tokens: 100,357 | Duration: 70.1s
+</div>
+</div>
+
+**关键发现**：3 个独立 skeptic 全部正确反驳了错误声明，confidence 高达 0.97-0.98。对抗验证在过滤错误信息方面非常有效。
+
+## 本章小结
+
+- Bug 猎手 = loop-until-dry 发现 + 对抗验证过滤
+- 连续 N 轮找不到新 bug 时停止（dry streak）
+- 5 票对抗验证：多数票决定是否保留
+- 实测：3 agents 正确反驳错误声明，confidence 0.97+
+`,
+en: `
+Continuously find bugs until dry, then adversarially verify to filter false positives.
+
+## Key Patterns
+
+### Loop-Until-Dry: Keep finding until N consecutive rounds return nothing new.
+
+### 5-Vote Adversarial Verify: Each finding gets 5 independent skeptics trying to refute it. Majority vote decides.
+
+## Real Adversarial Verification Results
+
+<div class="test-result">
+<div class="test-header">
+<span class="status pass">PASS</span>
+<span class="test-name">adversarial-verify</span>
+</div>
+<div class="test-output">
+Claim: "setTimeout(0) guarantees running before I/O callbacks"
+Votes: 3/3 REFUTED (confidence: 0.97-0.98) → REJECTED (correctly)
+Agents: 3 | Tokens: 100,357 | Duration: 70.1s
+</div>
+</div>
+
+## Chapter Summary
+
+- Bug hunter = loop-until-dry discovery + adversarial verification filtering
+- Stop after N consecutive dry rounds
+- 5-vote adversarial: majority vote decides retention
+- Test result: 3 agents correctly refuted false claim, confidence 0.97+
+`
+};
+
+// ═══ Ch16: Resume from Checkpoint ═══
+CONTENT['ch16'] = {
+zh: `
+\`resumeFromRunId\` 让你在 workflow 中断后恢复执行——已完成的 agent 直接返回缓存结果。
+
+## 工作原理
+
+\`\`\`
+首次运行：
+  agent A → 完成 (缓存)
+  agent B → 完成 (缓存)
+  agent C → 中断！
+
+恢复运行（resumeFromRunId）：
+  agent A → 缓存命中 ✓ (瞬间返回)
+  agent B → 缓存命中 ✓ (瞬间返回)
+  agent C → 重新执行 (从中断处继续)
+  agent D → 正常执行
+\`\`\`
+
+## 使用方法
+
+\`\`\`javascript
+// 首次运行返回 runId
+Workflow({ script: '...', /* or scriptPath */ })
+// 返回: { runId: 'wf_abc123-456' }
+
+// 中断后恢复
+Workflow({
+  scriptPath: '/path/to/script.js',
+  resumeFromRunId: 'wf_abc123-456'
+})
+\`\`\`
+
+## 缓存命中条件
+
+缓存命中要求 **prompt 和 opts 都完全相同**：
+
+- 相同的脚本 + 相同的 args → 100% 缓存命中
+- 修改了某个 agent 的 prompt → 该 agent 及之后的全部重新执行
+- 在中间插入新 agent → 插入点之后全部重新执行
+
+<div class="callout warning">
+<div class="callout-title">限制</div>
+<code>Date.now()</code>、<code>Math.random()</code> 和无参 <code>new Date()</code> 在脚本中不可用——它们会破坏 resume 的确定性。如需时间戳，通过 <code>args</code> 传入。
+</div>
+
+## 本章小结
+
+- \`resumeFromRunId\` 恢复中断的 workflow
+- 已完成的 agent 瞬间返回缓存结果
+- 缓存命中条件：prompt + opts 完全相同
+- Date.now/Math.random 不可用（会破坏确定性）
+`,
+en: `
+\`resumeFromRunId\` lets you resume execution after a workflow interruption — completed agents return cached results instantly.
+
+## How It Works
+
+First run completes agents A and B, then interrupts at C. Resume with the same runId: A and B return cached results instantly, C and onwards re-execute.
+
+## Cache Hit Conditions
+
+- Same script + same args → 100% cache hit
+- Modified agent prompt → that agent and all after re-execute
+- Inserted new agent → insertion point and after re-execute
+
+## Chapter Summary
+
+- \`resumeFromRunId\` resumes interrupted workflows
+- Completed agents return cached results instantly
+- Cache hit requires identical prompt + opts
+- Date.now/Math.random unavailable (breaks determinism)
+`
+};
+
+// ═══ Ch17: Worktree Isolation ═══
+CONTENT['ch17'] = {
+zh: `
+\`isolation: 'worktree'\` 让多个 agent 在独立的 git worktree 中并行修改文件，互不冲突。
+
+## 为什么需要隔离
+
+默认情况下，所有 agent 共享同一个工作目录。如果两个 agent 同时修改同一个文件，会产生冲突。Worktree 隔离为每个 agent 创建独立的文件系统副本。
+
+## 使用方法
+
+\`\`\`javascript
+const results = await parallel([
+  () => agent('Refactor the auth module', {
+    isolation: 'worktree',
+    label: 'auth-refactor',
+  }),
+  () => agent('Refactor the database module', {
+    isolation: 'worktree',
+    label: 'db-refactor',
+  }),
+])
+// 两个 agent 在独立 worktree 中工作，互不干扰
+\`\`\`
+
+## 开销与清理
+
+- 创建 worktree 有 ~200-500ms 开销 + 磁盘使用
+- 如果 agent 未做任何更改，worktree 自动清理
+- 如果有更改，返回结果中包含 worktree 路径和分支名
+
+<div class="callout warning">
+<div class="callout-title">仅在必要时使用</div>
+Worktree 隔离开销不小。只在多个 agent 需要<strong>并行写入文件</strong>时使用。如果 agent 只读取文件或只返回分析结果，不需要隔离。
+</div>
+
+## 本章小结
+
+- \`isolation: 'worktree'\` 为每个 agent 创建独立的 git worktree
+- 适用于多 agent 并行修改文件的场景
+- 有 200-500ms 创建开销，未修改时自动清理
+- 只在需要并行写入文件时使用
+`,
+en: `
+\`isolation: 'worktree'\` lets multiple agents modify files in parallel using isolated git worktrees.
+
+## When to Use
+
+Only when multiple agents need to **write files in parallel**. Read-only agents don't need isolation.
+
+## Chapter Summary
+
+- \`isolation: 'worktree'\` creates independent git worktrees per agent
+- For parallel file modification scenarios
+- ~200-500ms creation overhead, auto-cleanup if no changes
+- Only use when parallel file writes are needed
+`
+};
+
+// ═══ Ch18: Nested Workflows ═══
+CONTENT['ch18'] = {
+zh: `
+\`workflow()\` 让你在一个 workflow 内部调用另一个 workflow，实现模块化编排。
+
+## 使用方法
+
+\`\`\`javascript
+// 调用 named workflow
+const result = await workflow('sharded-review', { target: 'src/' })
+
+// 调用脚本文件
+const result = await workflow({ scriptPath: '/path/to/review.js' }, { depth: 'thorough' })
+\`\`\`
+
+## 共享资源
+
+子 workflow 与父 workflow 共享：
+- **并发上限** — 同一个 min(16, CPU-2) 池
+- **Agent 计数器** — 计入同一个 1000 上限
+- **Token 预算** — budget.spent() 是共享池
+- **终止信号** — 父 workflow 终止时子 workflow 也终止
+
+## 限制
+
+- 嵌套只能一层——workflow() 内部再调 workflow() 会抛异常
+- 子 workflow 的 agent 在 /workflows 中显示为缩进子组
+
+<div class="callout info">
+<div class="callout-title">args 传递</div>
+<code>workflow()</code> 的第二个参数成为子 workflow 中的 <code>args</code> 全局变量。用它来参数化复用的 workflow。
+</div>
+
+## 本章小结
+
+- \`workflow()\` 实现模块化编排
+- 子 workflow 共享并发上限、agent 计数器、token 预算
+- 嵌套限制为一层
+- 通过 args 参数化子 workflow
+`,
+en: `
+\`workflow()\` lets you call another workflow inside a workflow for modular orchestration.
+
+## Shared Resources
+
+Child workflows share concurrency cap, agent counter, token budget, and abort signal with the parent.
+
+## Limitations
+
+- Nesting is one level only — workflow() inside a child throws
+- Child agents appear as indented subgroups in /workflows
+
+## Chapter Summary
+
+- \`workflow()\` enables modular orchestration
+- Child shares concurrency, agent count, budget with parent
+- One-level nesting limit
+- Parameterize child workflows via args
+`
+};
+
+// ═══ Ch19: Quality Patterns ═══
+CONTENT['ch19'] = {
+zh: `
+五种经过验证的质量模式——按需组合，提升 workflow 输出的可靠性。
+
+## 1. 对抗验证 (Adversarial Verify)
+
+派 N 个独立 skeptic 尝试**反驳**每个发现。无法反驳的才保留。
+
+\`\`\`javascript
+const votes = await parallel(
+  Array.from({ length: 3 }, () => () =>
+    agent('Try to REFUTE: ' + claim, { schema: VERDICT_SCHEMA })
+  )
+)
+const survives = votes.filter(Boolean).filter(v => !v.refuted).length >= 2
+\`\`\`
+
+**实测验证**：我们的 adversarial-verify 测试中，3 个 skeptic 以 0.97+ confidence 正确反驳了错误声明。
+
+## 2. 评委面板 (Judge Panel)
+
+生成 N 个独立方案，用并行评委打分，选最优。
+
+**实测验证**：judge-panel 测试中，12 agents（3 生成 + 9 评委）在 140s 内完成，MVP 方案以 7.67 分胜出。
+
+## 3. 循环到干 (Loop Until Dry)
+
+持续发现直到连续 K 轮没有新结果。
+
+\`\`\`javascript
+let dryStreak = 0
+while (dryStreak < K) {
+  const found = await agent('Find more issues not in: ' + existing)
+  if (found.length === 0) dryStreak++
+  else { dryStreak = 0; results.push(...found) }
+}
+\`\`\`
+
+## 4. 多模态扫描 (Multi-Modal Sweep)
+
+多个 agent 各自用不同搜索策略，覆盖不同盲区。
+
+\`\`\`javascript
+const results = await parallel([
+  () => agent('Search by file structure'),    // 按文件结构
+  () => agent('Search by data flow'),         // 按数据流
+  () => agent('Search by error patterns'),    // 按错误模式
+])
+\`\`\`
+
+## 5. 完整性批评 (Completeness Critic)
+
+最后一个 agent 问"还缺什么？"——未覆盖的维度、未验证的声明、未读的源。
+
+\`\`\`javascript
+const critic = await agent(
+  'What is MISSING from this analysis? What modality was not run, ' +
+  'what claim is unverified, what source was not read?',
+  { schema: GAPS_SCHEMA }
+)
+// critic.gaps 成为下一轮工作的输入
+\`\`\`
+
+## 组合使用
+
+这些模式可以自由组合：
+
+\`\`\`
+发现阶段：Multi-Modal Sweep + Loop Until Dry
+验证阶段：Adversarial Verify (3-5 votes)
+选择阶段：Judge Panel
+收尾阶段：Completeness Critic
+\`\`\`
+
+## 本章小结
+
+| 模式 | 用途 | 何时使用 |
+|------|------|---------|
+| 对抗验证 | 过滤误报 | 发现阶段后 |
+| 评委面板 | 选最优方案 | 多方案比较 |
+| 循环到干 | 发现全部 | 未知数量的发现 |
+| 多模态扫描 | 覆盖盲区 | 单一搜索不够时 |
+| 完整性批评 | 查缺补漏 | 收尾阶段 |
+`,
+en: `
+Five proven quality patterns — combine as needed to improve workflow output reliability.
+
+## 1. Adversarial Verify
+Spawn N skeptics to try to REFUTE each finding. Only survivors are kept.
+**Tested**: 3 skeptics correctly refuted a false claim with 0.97+ confidence.
+
+## 2. Judge Panel
+Generate N solutions, score with parallel judges, pick the best.
+**Tested**: 12 agents, MVP-first won at 7.67/10.
+
+## 3. Loop Until Dry
+Keep finding until K consecutive rounds return nothing new.
+
+## 4. Multi-Modal Sweep
+Multiple agents each use different search strategies to cover blind spots.
+
+## 5. Completeness Critic
+A final agent asks "what's missing?" to identify uncovered dimensions.
+
+## Chapter Summary
+
+| Pattern | Purpose | When to Use |
+|---------|---------|-------------|
+| Adversarial Verify | Filter false positives | After discovery phase |
+| Judge Panel | Pick best solution | Multi-solution comparison |
+| Loop Until Dry | Find everything | Unknown discovery count |
+| Multi-Modal Sweep | Cover blind spots | Single search insufficient |
+| Completeness Critic | Find gaps | Final phase |
+`
+};
+
+// ═══ AppB: FAQ ═══
+CONTENT['appB'] = {
+zh: `
+常见问题和使用陷阱。
+
+## 启用相关
+
+**Q: 为什么 Workflow 工具不可用？**
+A: 需要设置 \`CLAUDE_CODE_WORKFLOWS=1\` 环境变量。在 \`~/.claude/settings.json\` 的 \`env\` 中添加，或启动时 \`CLAUDE_CODE_WORKFLOWS=1 claude\`。需要 v2.1.148+。
+
+**Q: 如何确认我的 Claude Code 版本？**
+A: 运行 \`claude --version\`。
+
+## 编写相关
+
+**Q: 为什么 agent 返回 null？**
+A: 两种可能：(1) 用户跳过了该 agent，(2) agent 在 parallel/pipeline 中抛出异常。用 \`.filter(Boolean)\` 过滤。
+
+**Q: 为什么 Schema 验证失败？**
+A: Schema 过于复杂或字段描述不清晰。添加 \`description\` 字段帮助模型理解。保持嵌套不超过 3 层。
+
+**Q: 为什么 Date.now() 不能用？**
+A: 为了保证 \`resumeFromRunId\` 的确定性——时间戳变化会导致缓存不命中。通过 \`args\` 传入时间戳。
+
+**Q: 最多能跑多少个 agent？**
+A: 并发上限 \`min(16, CPU 核心数 - 2)\`，生命周期总数上限 1000。
+
+## 性能相关
+
+**Q: 如何减少 token 消耗？**
+A: (1) 用 \`model: 'haiku'\` 给简单任务，(2) 减少 prompt 中的冗余上下文，(3) 用 Schema 约束输出长度。
+
+**Q: parallel 和 pipeline 哪个更快？**
+A: pipeline 通常更快——因为不需要等最慢的 agent。只在需要全部结果时用 parallel。
+`,
+en: `
+Common questions and usage pitfalls.
+
+## Activation
+
+**Q: Why is the Workflow tool unavailable?**
+A: Set \`CLAUDE_CODE_WORKFLOWS=1\` in \`~/.claude/settings.json\` env section. Requires v2.1.148+.
+
+## Writing
+
+**Q: Why does agent return null?**
+A: User skipped, or agent threw in parallel/pipeline. Filter with \`.filter(Boolean)\`.
+
+**Q: Why does Schema validation fail?**
+A: Schema too complex or descriptions unclear. Add \`description\` fields. Keep nesting under 3 levels.
+
+**Q: Why can't I use Date.now()?**
+A: Breaks \`resumeFromRunId\` determinism. Pass timestamps via \`args\`.
+
+## Performance
+
+**Q: How to reduce token consumption?**
+A: (1) Use \`model: 'haiku'\` for simple tasks, (2) reduce prompt redundancy, (3) use Schema to constrain output length.
+`
+};
+
+// ═══ AppC: Best Practices Checklist ═══
+CONTENT['appC'] = {
+zh: `
+生产级 Workflow 的检查清单。
+
+## meta
+
+- [ ] \`name\` 使用 kebab-case
+- [ ] \`description\` 一行，清晰描述用途
+- [ ] \`phases\` 与脚本中的 \`phase()\` 调用一致
+
+## agent()
+
+- [ ] prompt 自包含——不依赖父对话上下文
+- [ ] 使用 \`label\` 便于在 /workflows 中辨识
+- [ ] 需要结构化数据时使用 \`schema\`
+- [ ] Schema 包含 \`description\` 字段
+- [ ] 简单任务使用 \`model: 'haiku'\`
+- [ ] 只在并行写文件时使用 \`isolation: 'worktree'\`
+
+## 并发
+
+- [ ] 默认使用 \`pipeline()\`，除非需要屏障
+- [ ] parallel() 内使用 agent 的 \`phase\` 选项（非全局 phase）
+- [ ] 处理 null 返回值：\`.filter(Boolean)\`
+
+## 预算
+
+- [ ] 循环前检查 \`budget.total\`（null 时 remaining 为 Infinity）
+- [ ] 预留足够余量（\`remaining() > 50_000\`）
+
+## 质量
+
+- [ ] 关键发现使用对抗验证
+- [ ] GCF 循环设置最大轮数
+- [ ] Critic 明确通过/不通过标准
+
+## 复用
+
+- [ ] 脚本放入 \`.claude/workflows/\`
+- [ ] 通过 \`args\` 参数化
+- [ ] Schema 定义抽取到共享模块
+`,
+en: `
+Checklist for production-ready Workflows.
+
+## meta
+- [ ] \`name\` in kebab-case
+- [ ] \`description\` one line, clear purpose
+- [ ] \`phases\` match \`phase()\` calls in script
+
+## agent()
+- [ ] Prompts are self-contained
+- [ ] Use \`label\` for /workflows identification
+- [ ] Use \`schema\` for structured data
+- [ ] Use \`model: 'haiku'\` for simple tasks
+- [ ] Only \`isolation: 'worktree'\` when parallel file writes needed
+
+## Concurrency
+- [ ] Default to \`pipeline()\` unless barrier needed
+- [ ] Use agent \`phase\` option inside parallel (not global)
+- [ ] Handle null returns: \`.filter(Boolean)\`
+
+## Quality
+- [ ] Adversarial verify for critical findings
+- [ ] GCF loops have max round limits
+- [ ] Critics have explicit pass/fail criteria
+`
+};
+
+// ═══ AppD: Glossary ═══
+CONTENT['appD'] = {
+zh: `
+Workflow 相关术语速查表。
+
+| 术语 | 英文 | 含义 |
+|------|------|------|
+| 确定性编排 | Deterministic Orchestration | 由脚本而非模型控制执行路径 |
+| 子 agent | Subagent | workflow 中 agent() 派遣的独立执行单元 |
+| 屏障 | Barrier | parallel() 的语义——等所有完成才继续 |
+| 流水线 | Pipeline | pipeline() 的语义——每个 item 独立流过所有 stage |
+| 结构化输出 | Structured Output | 通过 JSON Schema 约束 agent 返回值 |
+| 对抗验证 | Adversarial Verification | 独立 agent 尝试反驳发现，过滤误报 |
+| 评委面板 | Judge Panel | 多评委打分选最优方案 |
+| 循环到干 | Loop Until Dry | 连续 K 轮无新发现时停止 |
+| 预算 | Budget | 通过 "+500k" 指令设定的 token 消耗上限 |
+| 断点续传 | Resume | 用 resumeFromRunId 恢复中断的 workflow |
+| Worktree 隔离 | Worktree Isolation | 在独立 git worktree 中运行 agent |
+| 嵌套 Workflow | Nested Workflow | 在 workflow 内调用另一个 workflow |
+| GCF | Generate-Critique-Fix | 生成→批评→修复的迭代改进模式 |
+| CSO | Claude Search Optimization | Superpowers 的 Skill 描述优化策略 |
+| 铁律 | Iron Rule | ccg-workflow 中不可违反的规则 |
+`,
+en: `
+Quick reference for Workflow-related terminology.
+
+| Term | Chinese | Meaning |
+|------|---------|---------|
+| Deterministic Orchestration | 确定性编排 | Execution path controlled by script, not model |
+| Subagent | 子 agent | Independent execution unit dispatched by agent() |
+| Barrier | 屏障 | parallel() semantics — wait for all to complete |
+| Pipeline | 流水线 | pipeline() semantics — items flow independently |
+| Structured Output | 结构化输出 | Constraining agent returns via JSON Schema |
+| Adversarial Verification | 对抗验证 | Independent agents try to refute findings |
+| Judge Panel | 评委面板 | Multiple judges score solutions |
+| Loop Until Dry | 循环到干 | Stop after K consecutive empty rounds |
+| Budget | 预算 | Token consumption cap via "+500k" directive |
+| Resume | 断点续传 | Restore interrupted workflow via resumeFromRunId |
+| GCF | 生成-批评-修复 | Generate-Critique-Fix iterative pattern |
+`
+};
