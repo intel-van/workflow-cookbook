@@ -11,6 +11,8 @@ legacy/
 
 # Session handoff / internal working notes — not for publication
 SESSION-*-HANDOFF.md
+# …except the R4 cross-session handoff, which is committed on purpose (per user request)
+!SESSION-R4-HANDOFF.md
 
 # OS
 .DS_Store
