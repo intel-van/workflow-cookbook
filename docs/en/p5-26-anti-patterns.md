@@ -498,4 +498,6 @@ This also echoes the whole book's through-line: native Workflow provides a deter
 
 With this, Part V "Ecosystem and Borrowing" is complete: Chapter 23 saw clearly the real mechanisms of the four major systems, Chapter 24 extracted their essence into your own Workflow, Chapter 25 settled these Workflows into a shareable library, and Chapter 26 held the bottom line that makes all of this hold.
 
+> Continue reading: [Chapter 27 · The Authoring Workflow](#/en/p6-27)
+>
 > Further reading: [Appendix A · Full API Reference](#/en/app-a) · [Appendix B · Pitfalls and Troubleshooting](#/en/app-b) · [Appendix C · Best-practices Checklist](#/en/app-c)

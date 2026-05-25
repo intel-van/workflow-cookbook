@@ -74,6 +74,15 @@
       ]
     },
     {
+      "id": "part-6",
+      "label": { "zh": "第六部 · 创作篇", "en": "Part VI · Authoring" },
+      "chapters": [
+        { "id": "p6-27", "num": "27", "title": { "zh": "工作流创作流程", "en": "The Authoring Workflow" }, "file": { "zh": "docs/zh/p6-27-authoring.md", "en": "docs/en/p6-27-authoring.md" } },
+        { "id": "p6-28", "num": "28", "title": { "zh": "校验与调试", "en": "Validation & Debugging" }, "file": { "zh": "docs/zh/p6-28-validator-debug.md", "en": "docs/en/p6-28-validator-debug.md" } },
+        { "id": "p6-29", "num": "29", "title": { "zh": "示例画廊", "en": "Example Gallery" }, "file": { "zh": "docs/zh/p6-29-gallery.md", "en": "docs/en/p6-29-gallery.md" } }
+      ]
+    },
+    {
       "id": "appendix",
       "label": { "zh": "附录", "en": "Appendices" },
       "chapters": [
