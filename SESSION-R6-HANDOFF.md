@@ -7,7 +7,7 @@
 
 ## 0. 一句话状态
 
-R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI/HIGH）、亲自重跑 3 个应用级工作流（≈152 万 token）、全量 36 章普查（6 并行 agent，仅 5 处保守修复）、R5/R6 真跑并入规范源（唯一 Run ID 20→23）。事实层经 codex 深度 read-only 审查 + 主窗口独立交叉核验；前端经 Claude fallback 审查（agy 未认证）。`anchor-audit` **0 问题**、zh/en **36↔36**、SRI 浏览器验证 **6/6**。**全书规划范围保持完成态**，本轮主线是「让一切更经得起核」。
+R6 是一轮**全方位核实 + 打磨**，共 **A–E 五个 phase / 5 个提交**（`e38578a` → `c761c0d`，均 2026-05-25 已 push）：前端 9 项 dogfood 修复（含 SRI/HIGH）、亲自重跑 3 个应用级工作流（≈152 万 token）、全量 36 章普查（6 并行 agent，仅 5 处保守修复）、R5/R6 真跑并入规范源；**Phase E 二轮**真修 mermaid 逐图 a11y（160 图自动派生可访问名）+ 重跑 review-spa 验证（Phase B 的 **9 修确认消失**、14→10）+ 再修 3 项（语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP）。事实层经 **review-spa 真跑对抗审查**（Phase B/E）+ codex 深度 read-only（Phase C，后卡死）+ 主窗口独立交叉核验；前端经 Claude fallback 审查（agy 未认证）+ **多轮 Playwright 浏览器验证**。`anchor-audit` **0 问题**、zh/en **36↔36**、SRI+CSP+逐图 a11y 全过浏览器实测。**全书规划范围保持完成态。**
 
 ---
 
@@ -21,7 +21,7 @@ R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI
 | `81d4af6` | feat: Phase B 重跑 3 工作流 + 修 review-spa dogfood 发现 | `index.html`（9 项修复见下）、`examples-r6.md`(新) | `assets/transcripts/examples-r6.md` |
 | `6fe4382` | fix: Phase C 全量 36 章普查 + 并入 R5/R6 真跑 | 5 处保守修复（`p1-02`/`p2-09`/`app-e` en、`p4-21`/`p4-22` zh+en）、`_grounding.md §C2`、`p6-29` zh+en R6 复跑说明 | 6 个普查 agent 报告 + `_grounding.md` |
 | `8c4ce66` | chore: Phase D 收尾 | `README.md`/`README.en.md`（真跑数 20→23 + 软化绝对化表述）、`index.html`（首页 stat 10+→20+）、`SESSION-R6-HANDOFF.md`(新)、`.gitignore` | 本文件 / `_grounding.md §C2` |
-| （本提交）| feat: Phase E（用户「完成所有值得做的」） | `index.html`（mermaid 逐图可访问名、语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP）、`app-b`/`app-c`×en/zh（E2 边界项）、`examples-r6.md §5` | review-spa 复验 `wf_f1b6bf8b-2f4`（14→10，9 修确认消失）+ Playwright |
+| `c761c0d` | feat: Phase E（用户「完成所有值得做的」） | `index.html`（mermaid 逐图可访问名、语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP）、`app-b`/`app-c`×en/zh（E2 边界项）、`examples-r6.md §5` | review-spa 复验 `wf_f1b6bf8b-2f4`（14→10，9 修确认消失）+ Playwright |
 
 > **Phase E（二轮，应用户「完成所有下一步值得做的」）**：① 真修 mermaid a11y——从图真实标签自动派生逐图可访问名（非手写 160 条 prose，避 AI-slop），Playwright 5/5 PASS；② 重跑 review-spa（`wf_f1b6bf8b-2f4`）验证 Phase B 9 修**确认消失**（且 slugify/SRI/innerHTML 被正面确认安全），新出 10 条中再修 3 项（语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP 经测 0 拦截），其余为正面确认/固有/可接受/纵深防御（详见 `examples-r6.md §5`）；③ 收掉 sweep 标记的 2 个边界项（app-c C.5 `phases[].model` 未核实澄清、app-b B.1 去 throttling 误归因）。**复验循环已收口**——再跑只会 surface 递减低危项。codex 因 Phase C 卡死二轮未再跑，对抗审查由 review-spa 真跑 + Playwright 承担。
 
@@ -53,10 +53,16 @@ R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI
 - **并入真跑**：R5+R6 六个应用级真跑并入 `_grounding.md §C2`（唯一 Run ID 20→23）；`p6-29` 双语补一句 R6 复跑印证（形态稳定复现、发现数随目标演进波动）。
 - **审查门（codex 默认模型）**：`codex exec -s read-only` 跑了深度核查（376KB 轨迹：用 node 实测 slugify 重写碰撞用例、枚举全仓库 32 个 wf_ 对照 transcripts），**全程未抛 CRITICAL、其计划行自陈趋向 SAFE**；进程在最终 verdict 块刷出前**卡死**（4.5 分钟无写），被 `pkill` 停止（exit 144）。所有改动已由主窗口独立交叉核验（sweep diff 逐行、slugify 浏览器 0 重复 id、SRI 6/6、数字三处自洽）。
 
-### 2.4 Phase D — 收尾（本提交）
+### 2.4 Phase D — 收尾（`8c4ce66`）
 - README 双语：真跑数 `20 → 23`（+R6 3）；软化 line 38「每个配方都真实跑过」为「已实跑附 Run ID、示意明确标注」（与 line 53 诚实声明统一）。
 - `index.html` 首页 stat `10+ → 20+`（中英）。
 - `anchor-audit`：72 文档 / 812 链接 / **TOTAL ISSUES: 0**。
+
+### 2.5 Phase E — 二轮「完成所有值得做的」（`c761c0d`）
+- **mermaid a11y 真修**：从每张图渲染后的**真实标签**自动派生专属可访问名（`foreignObject` 取 flowchart htmlLabels + `text` 取 sequence/state 图），取代泛化占位「流程图示（含义见正文描述）」。**非手写 160 条 prose**（避 AI-slop）。⚠ 首版用 `querySelectorAll('text')` 失效（见 §3 教训），改双路后 Playwright 复验 **5/5 PASS**（zh/en 各 80 图、泛化占位清零、sequence 图 `text` 回退生效）。
+- **重跑 review-spa 验证**（`wf_f1b6bf8b-2f4`，16 agent / 752,345 token / 341,389ms）：**14 → 10**，Phase B 的 **9 修确认消失**，且 slugify/SRI/innerHTML 被**正面确认安全**。新出 10 条：再修 3（语言正则 `+`/`#`、aria-busy `#live` 播报、源白名单 CSP 实测 0 拦截），其余为正面确认/固有/可接受/纵深防御（逐条见 `examples-r6.md §5`）。
+- **E2 边界项**：app-c C.5 澄清 `phases[].model` 运行时未核实、app-b B.1 去掉 throttling 误归因（对齐 B.4 自身 cause 行 + `_grounding.md` B3）。
+- **审查门**：本二轮由 review-spa 真跑 + Playwright 承担（codex 因 Phase C 卡死未再跑）。**复验循环已收口**——14→10 且修复项清零、新项均低危/正面/可接受，再跑只 surface 递减噪声。
 
 ---
 
@@ -65,15 +71,18 @@ R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI
 - **codex exec 可能在收尾卡死**：本轮 codex 深度审查完成调查、趋向 SAFE，却在刷最终 verdict 前停滞 4.5 分钟。判据：输出 mtime 长时间不变 + 已出现「SAFE verdict」计划行。处置：`pkill -f "codex exec"`，据独立核验推进。**教训**：codex 审查是第二意见/安全网，主窗口必须独立核验、不可纯等它出结论。
 - **context-mode hook 拦截 curl/wget**：算 SRI sha384 改用 `ctx_execute`（Node `fetch`+`crypto`），不要重试 curl。
 - **审计 agent 会报伪问题**：「tab/copy 不一致」经 `grep $'\t'` 实测为 0 → 不存在。落实任何「修复」前先验证问题真伪。
+- **前端「我以为渲染成 X」必须浏览器实测**：Phase E 首版 mermaid a11y 用 `querySelectorAll('text')` 取标签**取到 0**——误判 `securityLevel:'strict'` 把标签渲成 SVG `<text>`，实测 flowchart（htmlLabels 默认开）标签在 `<foreignObject>/<span>` 里。Playwright 当场抓出，改 `foreignObject, text` 双路才生效。**别信对 DOM 结构的想当然，改完必浏览器验证。**
+- **codex 卡死时用 review-spa 当审查门**：Phase E 未再跑 codex（Phase C 已卡死），改用 `review-spa` 真跑——它本就是多 agent 对抗验证、且 dogfood 审 `index.html`，比 codex 更对口前端；它还兼任「修复回归验证」（重跑看上轮发现是否消失，本轮 14→10 即证 9 修生效）。
 
 ---
 
 ## 4. 可验证事实清单（R7 用前先复核）
-- **唯一 Run ID = 23**：R4 基线主表 17（`_grounding.md §C`）+ R5 应用级 3 + R6 应用级 3（`§C2`）。注：仓库内 `wf_` 字符串实际有 32 个（含 R3 复验组与子运行），「23」是 curated 计数。
+- **唯一 Run ID**：README/grounding 头条 **23**（R4 基线 17 + R5 应用级 3 + R6 应用级 3，见 `_grounding.md §C/§C2`）。⚠ **Phase E 另真跑了 1 次 review-spa 复验** `wf_f1b6bf8b-2f4`（验证用、记于 `examples-r6.md §5`），未并入头条——故 curated 真跑实为 **24**。**R7 可选**：把它并入 `§C2` 并把头条改 24（或维持「23 应用级/基线 + 复验单列」）。仓库内唯一 `wf_` 字符串总数 = **33**（rg 实测：上轮 codex 枚举 32 + 本轮复验 1；含 R3 复验组/子运行，非全 curated）；复核：`grep -rhoE 'wf_[a-z0-9]+-[a-z0-9]+' assets docs \| sort -u \| wc -l`。
 - **结构 = 6 部 29 章 + 附录 A–F**：`manifest.json`。
 - **zh/en 完全对照**：`ls docs/{zh,en}/*.md | wc -l` = 各 36。
 - **链接/锚点/跨平台/i18n 审计 0 问题**：`node scripts/anchor-audit.mjs`（72 文档 / 812 链接 / TOTAL ISSUES: 0）。
 - **前端 SRI 不破坏加载**：4 个 CDN 脚本（marked/dompurify/highlight/mermaid）加 sha384 SRI，Playwright 子路径实测 0 console 错误、4 全局对象全加载。
+- **Phase E 前端硬化（均 Playwright 实测 0 错误 / 0 CSP 拦截）**：源白名单 CSP（`<head>` `Content-Security-Policy` meta；`'unsafe-inline'` 因单文件内联脚本必需、GitHub Pages 无法用 nonce，故约束的是资源**来源**而非内联注入——后者归 DOMPurify）、mermaid 逐图可访问名（160 图）、语言正则保留 `+`/`#`（c++/c#/f#）、aria-busy 经 `#live` 播报加载。
 - **中文正文约 14.5 万汉字**：`cat docs/zh/*.md | grep -oE '[一-鿿]' | wc -l`。
 
 ---
@@ -85,7 +94,7 @@ R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI
 
 ## 6. 待办 / 接力点（R7）
 - 全书规划范围**已完成、已上线、事实层经多轮跨模型 + 独立核验**。**无强制待办。**
-- 可选增强：① 已记录的 a11y 缺口（`p6-29 §29.1` 列、`examples-r6.md` finding #13）——mermaid figure `role=img` + 通用 aria-label，图内文字对 SR 不可见；正确修法需**逐图人工撰写描述**，留待按图补。② 若要真·antigravity 前端审查，先交互式登录 `agy`。③ 若 codex 审查再卡死，直接 `pkill` + 独立核验。
+- 可选增强：① mermaid a11y——**Phase E 已修**（从图真实标签自动派生逐图可访问名、160 图全覆盖、泛化占位清零，见 `examples-r6.md §5.1`）；若要更进一步，可给**少数关键图**手写 prose 描述（注意：全 160 图手写极易沦为套话，故 Phase E 选自动派生）。源白名单 **CSP 已于 Phase E 加**。② 若要真·antigravity 前端审查，先交互式登录 `agy`。③ 若 codex 审查再卡死，直接 `pkill` + 独立核验，或改用 `review-spa` 真跑当审查门（见 §3）。④（可选）把 Phase E 复验 `wf_f1b6bf8b-2f4` 并入 `_grounding.md §C2`、头条真跑数改 24（见 §4）。
 - 阻塞（用户侧，未变）：GitHub Actions 被计费封禁——只影响 Actions，**分支部署不受影响，切勿改回 Actions Pages**（push `main` 即部署）。
 
 ---
@@ -103,14 +112,17 @@ git log 665df2c..HEAD --name-only --format='### %h | %ad | %s' --date=short
 # 2. 任一提交的 diff
 git show 81d4af6      # Phase B：9 项 dogfood 修复 + examples-r6.md
 git show 6fe4382      # Phase C：36 章普查 5 修 + grounding §C2
+git show c761c0d      # Phase E：mermaid a11y + CSP + review-spa 复验 + E2
 
-# 3. R6 三个真跑 Run ID 与用量
-grep -nE 'wf_(ca7aa11f|ccda2a68|0771c834)' assets/transcripts/examples-r6.md assets/_grounding.md
+# 3. R6 真跑 Run ID 与用量（3 应用级 + 1 Phase E 复验）
+grep -nE 'wf_(ca7aa11f|ccda2a68|0771c834|f1b6bf8b)' assets/transcripts/examples-r6.md assets/_grounding.md
 
 # 4. 结构与审计
 node scripts/anchor-audit.mjs                 # 期望 TOTAL ISSUES: 0
 ls docs/zh/*.md docs/en/*.md | wc -l          # 期望 72（各 36）
 
-# 5. SRI 已加（4 个脚本）
+# 5. 前端硬化：SRI / CSP / mermaid 逐图 a11y
 grep -c 'integrity="sha384-' index.html       # 期望 ≥3（head 3 个；mermaid 在 loadScript 动态加）
+grep -c 'Content-Security-Policy' index.html  # 期望 1（Phase E 源白名单 CSP）
+grep -c 'foreignObject, text' index.html      # 期望 1（Phase E mermaid 逐图标签提取）
 ```
