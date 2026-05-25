@@ -283,7 +283,7 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
             <button data-lang="zh" class="on" aria-pressed="true">中文</button>
             <button data-lang="en" aria-pressed="false">EN</button>
           </div>
-          <a class="ghbtn" id="ghLink" href="#" target="_blank" rel="noopener" aria-label="GitHub repository">
+          <a class="ghbtn" id="ghLink" href="https://github.com/AGI-is-going-to-arrive/workflow-cookbook" target="_blank" rel="noopener" aria-label="GitHub repository">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
             GitHub
           </a>
@@ -295,9 +295,9 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" defer integrity="sha384-NNQgBjjuhtXzPmmy4gurS5X7P4uTt1DThyevz4Ua0IVK5+kazYQI1W27JHjbbxQz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js" defer integrity="sha384-3HPB1XT51W3gGRxAmZ+qbZwRpRlFQL632y8x+adAqCr4Wp3TaWwCLSTAJJKbyWEK" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer integrity="sha384-F/bZzf7p3Joyp5psL90p/p89AZJsndkSoGwRpXcZhleCWhd8SnRuoYo4d0yirjJp" crossorigin="anonymous"></script>
 <script>
 /* ───────────────────────── State ───────────────────────── */
 const S = { manifest:null, lang:'zh', id:null, flat:[] };
@@ -322,13 +322,18 @@ function slugify(text, seen){
     .replace(/[^\p{L}\p{N}-]+/gu,'')
     .replace(/-{2,}/gu,'-').replace(/^-+|-+$/gu,'');
   if(!id) id = 'section';
-  if(seen){ if(seen[id]!=null){ id = id+'-'+(++seen[id]); } else { seen[id]=0; } }
+  if(seen){
+    if(seen[id]==null){ seen[id]=0; return id; }
+    let n=seen[id], cand;
+    do{ cand=id+'-'+(++n); }while(seen[cand]!=null);   // skip past any natural slug that already equals base-N
+    seen[id]=n; seen[cand]=0; return cand;              // register the slug actually used, so later headings can't collide
+  }
   return id;
 }
-function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+function loadScript(src, integrity){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; if(integrity){ s.integrity=integrity; s.crossOrigin='anonymous'; } s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
 async function ensureMermaid(){
   if(window.mermaid) return window.mermaid;
-  if(!mermaidPromise){ mermaidPromise = loadScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js').then(()=>{
+  if(!mermaidPromise){ mermaidPromise = loadScript('https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js', 'sha384-WmdflGW9aGfoBdHc4rRyWzYuAjEmDwMdGdiPNacbwfGKxBW/SO6guzuQ76qjnSlr').then(()=>{
     window.mermaid.initialize({ startOnLoad:false, theme:'base', securityLevel:'strict',
       themeVariables:{ primaryColor:'#FCEFE6', primaryBorderColor:'#F05C00', lineColor:'#6B6B6E', primaryTextColor:'#1C1C1E', fontFamily:'Inter, "Noto Sans SC", sans-serif', fontSize:'14px', secondaryColor:'#F4F1E8', tertiaryColor:'#FFFFFF' }});
     return window.mermaid;
@@ -348,7 +353,7 @@ async function boot(){
     return;
   }
   S.flat = S.manifest.parts.flatMap(p=>p.chapters.map(c=>({...c, part:p})));
-  $('#ghLink').href = S.manifest.site.repo || '#';
+  const repo = S.manifest.site.repo; $('#ghLink').href = /^https?:\/\//i.test(repo) ? repo : '#';   // scheme allowlist: never assign a javascript:/data: URL to the visible link
   $('#sideEnv').textContent = S.manifest.site.env || '';
   const saved = getSavedLang();
   if(saved==='en'||saved==='zh') S.lang = saved;
@@ -423,6 +428,10 @@ function route(){
   window.scrollTo(0,0);
 }
 
+/* focus the chapter <h1> on user-initiated routes, but NOT on the initial automatic paint (don't yank a screen reader on first load) */
+let focusedH1Once = false;
+function setH1Focus(h1){ if(!h1) return; h1.setAttribute('tabindex','-1'); if(focusedH1Once) h1.focus({preventScroll:true}); focusedH1Once = true; }
+
 /* ───────────────────────── Home ───────────────────────── */
 function renderHome(){
   $('#content').setAttribute('aria-busy','false');
@@ -451,7 +460,7 @@ function renderHome(){
   });
   html += '</div></div>';
   $('#content').innerHTML = html;
-  const h1 = $('#content .masthead h1'); if(h1){ h1.setAttribute('tabindex','-1'); h1.focus({preventScroll:true}); }
+  const h1 = $('#content .masthead h1'); setH1Focus(h1);
 }
 
 /* ───────────────────────── Chapter ───────────────────────── */
@@ -464,7 +473,7 @@ async function renderChapter(id, my){
     $('#crumb').innerHTML = '<b>404</b>';
     $('#toc').innerHTML=''; tocLinks=[]; headEls=[];
     content.innerHTML='<h1>404</h1><p>'+t('notfound')+'</p>';
-    const h1 = content.querySelector('h1'); if(h1){ h1.setAttribute('tabindex','-1'); h1.focus({preventScroll:true}); }
+    const h1 = content.querySelector('h1'); setH1Focus(h1);
     return;
   }
   content.setAttribute('aria-busy','true');
@@ -496,7 +505,7 @@ async function renderChapter(id, my){
   enhance();
   renderToc();
   renderChapNav(ch);
-  const h1 = content.querySelector('h1'); if(h1){ h1.setAttribute('tabindex','-1'); h1.focus({preventScroll:true}); }
+  const h1 = content.querySelector('h1'); setH1Focus(h1);
 }
 
 function renderChapNav(ch){
@@ -519,16 +528,18 @@ function enhance(){
       // and tolerantly resolve slug drift (e.g. uncollapsed double hyphens) via slugify()
       a.addEventListener('click', e=>{
         e.preventDefault();
-        const raw = decodeURIComponent(href.slice(1));
+        let raw; try{ raw = decodeURIComponent(href.slice(1)); }catch(_){ raw = href.slice(1); }   // tolerate malformed %-escapes instead of throwing a dead link
         const el = document.getElementById(raw) || document.getElementById(slugify(raw));
         if(el) jumpTo(el.id);
       });
     }
+    // any author-supplied target=_blank (incl. protocol-relative //host) gets reverse-tabnabbing protection
+    if(a.target==='_blank' && !/\bnoopener\b/.test(a.rel||'')){ a.rel=(a.rel?a.rel+' ':'')+'noopener noreferrer'; }
   });
   const seen=Object.create(null);
-  $$('h2, h3', root).forEach((h,i)=>{
+  $$('h2, h3', root).forEach(h=>{
     h.dataset.title = h.textContent.trim();
-    h.id = slugify(h.dataset.title, seen) || ('section-'+i);
+    h.id = slugify(h.dataset.title, seen);
     const a=document.createElement('a'); a.className='anchor'; a.href='#'+h.id; a.textContent='#';
     a.setAttribute('aria-label', (S.lang==='zh'?'本节链接：':'Link to section: ')+h.dataset.title);
     a.onclick=(e)=>{ e.preventDefault(); jumpTo(h.id); };
@@ -602,7 +613,7 @@ function jumpTo(id){
 function renderToc(){
   headEls = $$('#content h2, #content h3');
   const toc = $('#toc');
-  if(headEls.length<2){ toc.innerHTML=''; tocLinks=[]; return; }
+  if(headEls.length<2){ toc.innerHTML=''; tocLinks=[]; headEls=[]; return; }
   toc.innerHTML = '<div class="toc-title">'+t('onThisPage')+'</div>' +
     headEls.map(hd=>'<a href="#'+hd.id+'" class="'+(hd.tagName==='H3'?'h3':'')+'" data-id="'+hd.id+'">'+esc(hd.dataset.title||hd.textContent.trim())+'</a>').join('');
   tocLinks = $$('#toc a');
