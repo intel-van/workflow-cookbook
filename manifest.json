@@ -1,0 +1,89 @@
+{
+  "site": {
+    "brand": { "zh": "织经", "en": "Loom" },
+    "title": { "zh": "织经 · Workflow Cookbook", "en": "Loom · The Workflow Cookbook" },
+    "tagline": {
+      "zh": "Claude Code 多 Agent 编排实战手册",
+      "en": "A Hands-on Guide to Multi-Agent Orchestration in Claude Code"
+    },
+    "repo": "https://github.com/AGI-is-going-to-arrive/workflow-cookbook",
+    "env": "Claude Code v2.1.150 · CLAUDE_CODE_WORKFLOWS=1 · Opus 4.7 (1M)"
+  },
+  "parts": [
+    {
+      "id": "preface",
+      "label": { "zh": "卷首", "en": "Front Matter" },
+      "chapters": [
+        { "id": "00-preface", "num": "序", "title": { "zh": "前言：经纬之间", "en": "Preface: Between Warp and Weft" }, "file": { "zh": "docs/zh/00-preface.md", "en": "docs/en/00-preface.md" } }
+      ]
+    },
+    {
+      "id": "part-1",
+      "label": { "zh": "第一部 · 认知篇", "en": "Part I · Understanding" },
+      "chapters": [
+        { "id": "p1-01", "num": "01", "title": { "zh": "Workflow 是什么", "en": "What Workflow Is" }, "file": { "zh": "docs/zh/p1-01-what-is-workflow.md", "en": "docs/en/p1-01-what-is-workflow.md" } },
+        { "id": "p1-02", "num": "02", "title": { "zh": "为什么需要确定性编排", "en": "Why Deterministic Orchestration" }, "file": { "zh": "docs/zh/p1-02-why-deterministic.md", "en": "docs/en/p1-02-why-deterministic.md" } },
+        { "id": "p1-03", "num": "03", "title": { "zh": "定位矩阵：五种扩展机制", "en": "The Positioning Matrix" }, "file": { "zh": "docs/zh/p1-03-positioning-matrix.md", "en": "docs/en/p1-03-positioning-matrix.md" } }
+      ]
+    },
+    {
+      "id": "part-2",
+      "label": { "zh": "第二部 · 基础篇", "en": "Part II · Foundations" },
+      "chapters": [
+        { "id": "p2-04", "num": "04", "title": { "zh": "第一个 Workflow", "en": "Your First Workflow" }, "file": { "zh": "docs/zh/p2-04-first-workflow.md", "en": "docs/en/p2-04-first-workflow.md" } },
+        { "id": "p2-05", "num": "05", "title": { "zh": "meta 与 phase：经线", "en": "meta & phase: The Warp" }, "file": { "zh": "docs/zh/p2-05-meta-and-phase.md", "en": "docs/en/p2-05-meta-and-phase.md" } },
+        { "id": "p2-06", "num": "06", "title": { "zh": "agent() 完全指南", "en": "The agent() Reference" }, "file": { "zh": "docs/zh/p2-06-agent-reference.md", "en": "docs/en/p2-06-agent-reference.md" } },
+        { "id": "p2-07", "num": "07", "title": { "zh": "结构化输出与 Schema", "en": "Structured Output & Schema" }, "file": { "zh": "docs/zh/p2-07-structured-output.md", "en": "docs/en/p2-07-structured-output.md" } },
+        { "id": "p2-08", "num": "08", "title": { "zh": "parallel 屏障 vs pipeline 流水线", "en": "parallel vs pipeline" }, "file": { "zh": "docs/zh/p2-08-parallel-vs-pipeline.md", "en": "docs/en/p2-08-parallel-vs-pipeline.md" } },
+        { "id": "p2-09", "num": "09", "title": { "zh": "进度·日志·续传·预算", "en": "Progress, Logs, Resume, Budget" }, "file": { "zh": "docs/zh/p2-09-progress-and-budget.md", "en": "docs/en/p2-09-progress-and-budget.md" } }
+      ]
+    },
+    {
+      "id": "part-3",
+      "label": { "zh": "第三部 · 实战食谱", "en": "Part III · Recipes" },
+      "chapters": [
+        { "id": "p3-10", "num": "10", "title": { "zh": "分片代码审查", "en": "Sharded Code Review" }, "file": { "zh": "docs/zh/p3-10-sharded-review.md", "en": "docs/en/p3-10-sharded-review.md" } },
+        { "id": "p3-11", "num": "11", "title": { "zh": "PR 多维 Review", "en": "Multi-Dimension PR Review" }, "file": { "zh": "docs/zh/p3-11-pr-review.md", "en": "docs/en/p3-11-pr-review.md" } },
+        { "id": "p3-12", "num": "12", "title": { "zh": "生成-批评-修复循环", "en": "Generate-Critique-Fix" }, "file": { "zh": "docs/zh/p3-12-gcf-loop.md", "en": "docs/en/p3-12-gcf-loop.md" } },
+        { "id": "p3-13", "num": "13", "title": { "zh": "深度研究", "en": "Deep Research" }, "file": { "zh": "docs/zh/p3-13-deep-research.md", "en": "docs/en/p3-13-deep-research.md" } },
+        { "id": "p3-14", "num": "14", "title": { "zh": "评委面板：A/B 评估", "en": "Judge Panel" }, "file": { "zh": "docs/zh/p3-14-judge-panel.md", "en": "docs/en/p3-14-judge-panel.md" } },
+        { "id": "p3-15", "num": "15", "title": { "zh": "Bug 猎手", "en": "Bug Hunter" }, "file": { "zh": "docs/zh/p3-15-bug-hunter.md", "en": "docs/en/p3-15-bug-hunter.md" } },
+        { "id": "p3-16", "num": "16", "title": { "zh": "文档与迁移大扫除", "en": "Docs & Migration Sweep" }, "file": { "zh": "docs/zh/p3-16-sweep.md", "en": "docs/en/p3-16-sweep.md" } }
+      ]
+    },
+    {
+      "id": "part-4",
+      "label": { "zh": "第四部 · 进阶模式", "en": "Part IV · Advanced Patterns" },
+      "chapters": [
+        { "id": "p4-17", "num": "17", "title": { "zh": "对抗验证", "en": "Adversarial Verification" }, "file": { "zh": "docs/zh/p4-17-adversarial.md", "en": "docs/en/p4-17-adversarial.md" } },
+        { "id": "p4-18", "num": "18", "title": { "zh": "循环到干与完整性批评", "en": "Loop-Until-Dry & Completeness" }, "file": { "zh": "docs/zh/p4-18-loop-until-dry.md", "en": "docs/en/p4-18-loop-until-dry.md" } },
+        { "id": "p4-19", "num": "19", "title": { "zh": "Worktree 隔离", "en": "Worktree Isolation" }, "file": { "zh": "docs/zh/p4-19-worktree.md", "en": "docs/en/p4-19-worktree.md" } },
+        { "id": "p4-20", "num": "20", "title": { "zh": "嵌套 Workflow", "en": "Nested Workflows" }, "file": { "zh": "docs/zh/p4-20-nested.md", "en": "docs/en/p4-20-nested.md" } },
+        { "id": "p4-21", "num": "21", "title": { "zh": "动态预算与规模化", "en": "Dynamic Budget & Scaling" }, "file": { "zh": "docs/zh/p4-21-budget-scaling.md", "en": "docs/en/p4-21-budget-scaling.md" } },
+        { "id": "p4-22", "num": "22", "title": { "zh": "断点续传与缓存", "en": "Resume & Caching" }, "file": { "zh": "docs/zh/p4-22-resume-caching.md", "en": "docs/en/p4-22-resume-caching.md" } }
+      ]
+    },
+    {
+      "id": "part-5",
+      "label": { "zh": "第五部 · 生态与借鉴", "en": "Part V · Ecosystem" },
+      "chapters": [
+        { "id": "p5-23", "num": "23", "title": { "zh": "四大系统横评", "en": "Four Systems Compared" }, "file": { "zh": "docs/zh/p5-23-four-systems.md", "en": "docs/en/p5-23-four-systems.md" } },
+        { "id": "p5-24", "num": "24", "title": { "zh": "精华提取术", "en": "The Art of Extraction" }, "file": { "zh": "docs/zh/p5-24-extraction.md", "en": "docs/en/p5-24-extraction.md" } },
+        { "id": "p5-25", "num": "25", "title": { "zh": "构建你自己的 Workflow 库", "en": "Build Your Own Library" }, "file": { "zh": "docs/zh/p5-25-your-library.md", "en": "docs/en/p5-25-your-library.md" } },
+        { "id": "p5-26", "num": "26", "title": { "zh": "反模式与陷阱", "en": "Anti-Patterns" }, "file": { "zh": "docs/zh/p5-26-anti-patterns.md", "en": "docs/en/p5-26-anti-patterns.md" } }
+      ]
+    },
+    {
+      "id": "appendix",
+      "label": { "zh": "附录", "en": "Appendices" },
+      "chapters": [
+        { "id": "app-a", "num": "A", "title": { "zh": "API 完整参考", "en": "API Reference" }, "file": { "zh": "docs/zh/app-a-api.md", "en": "docs/en/app-a-api.md" } },
+        { "id": "app-b", "num": "B", "title": { "zh": "陷阱与排错", "en": "Pitfalls & Troubleshooting" }, "file": { "zh": "docs/zh/app-b-pitfalls.md", "en": "docs/en/app-b-pitfalls.md" } },
+        { "id": "app-c", "num": "C", "title": { "zh": "最佳实践清单", "en": "Best Practices" }, "file": { "zh": "docs/zh/app-c-best-practices.md", "en": "docs/en/app-c-best-practices.md" } },
+        { "id": "app-d", "num": "D", "title": { "zh": "术语表", "en": "Glossary" }, "file": { "zh": "docs/zh/app-d-glossary.md", "en": "docs/en/app-d-glossary.md" } },
+        { "id": "app-e", "num": "E", "title": { "zh": "信源索引", "en": "Sources" }, "file": { "zh": "docs/zh/app-e-sources.md", "en": "docs/en/app-e-sources.md" } },
+        { "id": "app-f", "num": "F", "title": { "zh": "模式目录与场景速查", "en": "Pattern Catalog & Scenarios" }, "file": { "zh": "docs/zh/app-f-patterns.md", "en": "docs/en/app-f-patterns.md" } }
+      ]
+    }
+  ]
+}

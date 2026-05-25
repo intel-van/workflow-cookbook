@@ -9,16 +9,16 @@
 
 <br>
 
-[![Read Online](https://img.shields.io/badge/Read_Online-织经-C8952E?style=for-the-badge&logo=bookstack&logoColor=white)](https://8bit-echo.github.io/workflow-cookbook/)
-[![中文](https://img.shields.io/badge/语言-中文-E74C3C?style=flat-square)](#目录)
-[![English](https://img.shields.io/badge/Language-English-3498DB?style=flat-square)](#table-of-contents)
+[![在线阅读](https://img.shields.io/badge/在线阅读-织经-F05C00?style=for-the-badge&logo=bookstack&logoColor=white)](https://agi-is-going-to-arrive.github.io/workflow-cookbook/)
+[![中文](https://img.shields.io/badge/语言-中文-E74C3C?style=flat-square)](docs/zh/00-preface.md)
+[![English](https://img.shields.io/badge/Language-English-3498DB?style=flat-square)](docs/en/00-preface.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-> **"经之以天，纬之以地。"** ——《左传》
+> **「经之以天，纬之以地。」** ——《左传》
 >
 > 两千年前，织工以经线为骨、纬线为肉，一梭一梭织就锦缎。经是结构——纵贯始终、不可移易；纬是功能——穿梭其间、变化万千。
 >
@@ -30,157 +30,164 @@
 
 ## 这本书讲什么
 
-Claude Code 的 **Workflow** 特性是一个用 JavaScript 脚本化编排多 Agent 的确定性引擎。它不是 MCP，不是 Skills，不是 Subagents，更不是 Agent Teams——它是一种全新的、**可复用、可测试、可共享**的工程流水线。
+Claude Code 的 **Workflow** 特性（功能标志 `CLAUDE_CODE_WORKFLOWS`，社区昵称 *ultrawork*）是一个用 JavaScript 脚本**确定性编排多 Agent** 的引擎。它不是 MCP，不是 Skills，不是 Subagents，也不是 Agent Teams——而是一种全新的、**可复用、可测试、可分享**的工程流水线。
 
-> **实测环境**：Claude Code v2.1.148+，Opus 4.6/4.7 (1M context)，2026 年 5 月。Workflow 功能需通过 `CLAUDE_CODE_WORKFLOWS=1` 环境变量显式启用（在 `~/.claude/settings.json` 的 `env` 中设置，或启动时 `CLAUDE_CODE_WORKFLOWS=1 claude`）。本书所有 API 描述和示例均基于真实运行验证。
+本书从零到一带你：理解它的本质定位 → 掌握 `agent()`/`parallel()`/`pipeline()`/`schema` 全部 API → 实战 7 个真实运行的配方 → 解锁对抗验证 / 循环到干 / 预算 / 续传等进阶模式 → 横评四大社区系统并提取精华 → 构建属于你自己的 Workflow 库。
 
-本书从零到一带你：
+> **这不是 API 文档，是一本实战 Cookbook。深入浅出，每个配方都在 Claude Code 中真实跑过。**
 
-- 理解 Workflow 的本质定位与核心概念
-- 掌握 `agent()` / `parallel()` / `pipeline()` / `schema` 等全部 API
-- 实战 6 个完整 Recipe（代码审查、PR Review、深度研究、Bug 猎手……）
-- 解锁进阶模式（预算控制、断点续传、Worktree 隔离、嵌套 Workflow）
-- 横评 4 大优秀 Workflow 系统，提取可复用的精华模式
-- 从零构建属于你自己的可复用 Workflow 库
+<details>
+<summary><b>本书数据一览</b></summary>
 
-**每个 Recipe 均在 Claude Code 中实测运行，附带真实输出。**
+| 指标 | 数量 |
+|------|------|
+| 正文章节 | 26 章 + 5 篇附录 |
+| 全书字数 | 约 26 万字（中文）｜ 完整英文镜像 |
+| 真实 Workflow 运行 | 10 完成 / 9 唯一 ID（含 1 次续传缓存命中；记录见 [`assets/transcripts/`](assets/transcripts)） |
+| 实测环境 | Claude Code **v2.1.150**，`CLAUDE_CODE_WORKFLOWS=1`，Opus 4.7 (1M) |
+| 双语 | 中英完全对照，一键切换 |
+
+</details>
+
+> **实测声明：** 本书所有 API 描述均对照 Claude Code 官方分发包的类型定义 `sdk-tools.d.ts`（`WorkflowInput`/`WorkflowOutput`）逐字核对；所有标注「真实运行」的输出，均来自在真实会话中实际执行 Workflow 所得的原始结果，可在 `assets/transcripts/` 逐条溯源。未实跑、仅作示意的脚本均已明确标注。
+
+---
+
+## 在 Claude Code 里跑通第一个 Workflow
+
+```javascript
+export const meta = {
+  name: 'hello-workflow',
+  description: 'Smoke test: one subagent returns schema-constrained structured output',
+  phases: [{ title: 'Greet', detail: 'One subagent confirms the runtime' }],
+}
+
+phase('Greet')
+const r = await agent(
+  'You are a smoke test for the Claude Code Workflow runtime. Return a one-sentence ' +
+  'confirmation message, the integer value of 2+2, and a boolean confirming you ran ' +
+  'as a workflow subagent.',
+  {
+    label: 'smoke',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        sum: { type: 'number' },
+        runtimeConfirmed: { type: 'boolean' },
+      },
+      required: ['message', 'sum', 'runtimeConfirmed'],
+    },
+  }
+)
+log(`smoke result: ${JSON.stringify(r)}`)
+return r
+```
+
+> **如何运行（重要）**：这是一段 **Workflow 脚本**，不是独立的 Node 脚本——`export`/`meta`/`phase`/`agent`/`log` 都是 Workflow 运行时注入的全局符号。**用 `node hello.js` 跑会立刻报 `phase is not defined`（Windows / macOS 皆然）。** 正确方式：在**已开启功能标志**的 Claude Code 会话里（`CLAUDE_CODE_WORKFLOWS=1 claude`，或写入 `~/.claude/settings.json` 的 `env`），直接让 Claude 执行它——例如对它说「ultrawork：跑这个工作流」，由 Claude 调用内置的 Workflow 工具运行。
+>
+> 真实返回（`schema` 强制结构化，`sum` 为整数 `4` 而非字符串）：`{"message":"…","sum":4,"runtimeConfirmed":true}`（Run `wf_dacbd480-d5d`，1 agent / 26,338 token / 5.5s）。
 
 ---
 
 ## 目录
 
-### Part 1 · 认知篇 Understanding
+### 第一部 · 认知篇 — 建立心智模型
 
 | # | 章节 | 关键词 |
-|---|------|--------|
-| 01 | [Workflow 是什么](#ch01) | 确定性编排引擎 |
-| 02 | [核心概念全景图](#ch02) | meta / phase / agent / parallel / pipeline / schema |
-| 03 | [定位矩阵](#ch03) | Workflow vs Subagents vs Agent Teams vs Skills |
+|:-:|------|--------|
+| 01 | [Workflow 是什么](docs/zh/p1-01-what-is-workflow.md) | 确定性编排引擎 / 异步 taskId / 门控 |
+| 02 | [为什么需要确定性编排](docs/zh/p1-02-why-deterministic.md) | 手动多 Agent 的四大痛点 |
+| 03 | [定位矩阵：五种扩展机制](docs/zh/p1-03-positioning-matrix.md) | vs Subagents / Agent Teams / Skills / MCP |
 
-### Part 2 · 基础篇 Foundations
-
-| # | 章节 | 关键词 |
-|---|------|--------|
-| 04 | [环境搭建 & Hello Workflow](#ch04) | 第一个 Workflow / smoke test |
-| 05 | [agent() 完全指南](#ch05) | prompt / schema / model / isolation / agentType |
-| 06 | [并发编排双刃剑](#ch06) | parallel() 屏障 vs pipeline() 流水线 |
-| 07 | [结构化输出](#ch07) | JSON Schema / 数据流传递 |
-| 08 | [进度监控与调试](#ch08) | phase() / log() / /workflows |
-
-### Part 3 · 实战食谱 Recipes
+### 第二部 · 基础篇 — API 完全指南
 
 | # | 章节 | 关键词 |
-|---|------|--------|
-| 09 | [分片代码审查](#ch09) | 大代码库分治 + 对抗验证 |
-| 10 | [PR 多角色 Review](#ch10) | 安全 / 性能 / 架构多维度 |
-| 11 | [生成-批评-修复 (GCF Loop)](#ch11) | 循环退出条件设计 |
-| 12 | [深度研究](#ch12) | 多源搜索 + 交叉验证 |
-| 13 | [Prompt/Agent 评估](#ch13) | A/B 测试 + 评委面板 |
-| 14 | [Bug 猎手](#ch14) | 自繁殖发现池 + 对抗验证 |
+|:-:|------|--------|
+| 04 | [第一个 Workflow](docs/zh/p2-04-first-workflow.md) | 启动 / 异步回执 / 迭代循环 |
+| 05 | [meta 与 phase：经线](docs/zh/p2-05-meta-and-phase.md) | 纯字面量 / 进度分组 |
+| 06 | [agent() 完全指南](docs/zh/p2-06-agent-reference.md) | label/schema/model/isolation/agentType |
+| 07 | [结构化输出与 Schema](docs/zh/p2-07-structured-output.md) | JSON Schema / 校验重试 |
+| 08 | [parallel 屏障 vs pipeline 流水线](docs/zh/p2-08-parallel-vs-pipeline.md) | 最易错的并发抉择 |
+| 09 | [进度·日志·续传·预算](docs/zh/p2-09-progress-and-budget.md) | phase/log / resume / budget |
 
-### Part 4 · 进阶篇 Advanced Patterns
+### 第三部 · 实战食谱 — 每篇绑定真实运行
+
+| # | 章节 | 真实运行 |
+|:-:|------|--------|
+| 10 | [分片代码审查](docs/zh/p3-10-sharded-review.md) | Scan→Review→Verify→Synthesize |
+| 11 | [PR 多维 Review](docs/zh/p3-11-pr-review.md) | dogfood 审本书前端，26→16 问题 |
+| 12 | [生成-批评-修复 (GCF)](docs/zh/p3-12-gcf-loop.md) | slugify 揪出 10 缺陷 |
+| 13 | [深度研究](docs/zh/p3-13-deep-research.md) | 真实检索 + 逐版本核实 |
+| 14 | [评委面板](docs/zh/p3-14-judge-panel.md) | 3 评委 3:0 + 主动求证 |
+| 15 | [Bug 猎手](docs/zh/p3-15-bug-hunter.md) | 5/5 确认，证伪者纠正猎手 |
+| 16 | [文档与迁移大扫除](docs/zh/p3-16-sweep.md) | 只读分析 vs 真实改写 |
+
+### 第四部 · 进阶模式 — 让结果可信
 
 | # | 章节 | 关键词 |
-|---|------|--------|
-| 15 | [预算控制与动态循环](#ch15) | budget.total / remaining / loop |
-| 16 | [断点续传](#ch16) | resumeFromRunId / 缓存命中 |
-| 17 | [Worktree 隔离](#ch17) | 并行文件修改 |
-| 18 | [嵌套 Workflow](#ch18) | workflow() 子流程 |
-| 19 | [质量模式合集](#ch19) | 对抗验证 / 评委面板 / 循环到干 |
+|:-:|------|--------|
+| 17 | [对抗验证](docs/zh/p4-17-adversarial.md) | refute-by-default / 计票 |
+| 18 | [循环到干与完整性批评](docs/zh/p4-18-loop-until-dry.md) | 未知规模发现 |
+| 19 | [Worktree 隔离](docs/zh/p4-19-worktree.md) | 并行改文件防踩踏 |
+| 20 | [嵌套 Workflow](docs/zh/p4-20-nested.md) | workflow() 子流程（真实印证） |
+| 21 | [动态预算与规模化](docs/zh/p4-21-budget-scaling.md) | budget.total / remaining |
+| 22 | [断点续传与缓存](docs/zh/p4-22-resume-caching.md) | 缓存命中 0 token / 8ms（实证） |
 
-### Part 5 · 生态篇 Ecosystem
+### 第五部 · 生态与借鉴
 
 | # | 章节 | 关键词 |
-|---|------|--------|
-| 20 | [四大 Workflow 系统横评](#ch20) | ccg / OMC / OmO / Superpowers |
-| 21 | [精华提取术](#ch21) | 解构 → 抽象 → 适配 → 验证 |
-| 22 | [构建你的 Workflow 库](#ch22) | 目录结构 / 命名 / 版本管理 |
+|:-:|------|--------|
+| 23 | [四大系统横评](docs/zh/p5-23-four-systems.md) | ccg / superpowers / OMC / OmO |
+| 24 | [精华提取术](docs/zh/p5-24-extraction.md) | 解构→抽象→适配→验证 |
+| 25 | [构建你自己的 Workflow 库](docs/zh/p5-25-your-library.md) | 具名工作流 / 版本 / 分享 |
+| 26 | [反模式与陷阱](docs/zh/p5-26-anti-patterns.md) | 真实反模式清单 |
 
 ### 附录 Reference
 
-| # | 内容 |
-|---|------|
-| A | [API 完整参考](#appA) |
-| B | [常见问题与陷阱](#appB) |
-| C | [最佳实践清单](#appC) |
-| D | [术语表](#appD) |
+| | 内容 |
+|:-:|------|
+| [A](docs/zh/app-a-api.md) | **API 完整参考** — 对照官方类型定义 |
+| [B](docs/zh/app-b-pitfalls.md) | **陷阱与排错** |
+| [C](docs/zh/app-c-best-practices.md) | **最佳实践清单** |
+| [D](docs/zh/app-d-glossary.md) | **术语表**（中英对照） |
+| [E](docs/zh/app-e-sources.md) | **信源索引** |
 
 ---
 
-## 四大 Workflow 系统速览
+## 仓库结构
 
-本书第 20 章深度横评了 4 个优秀的 Workflow 系统，并从中提取可复用模式：
-
-| 系统 | 核心理念 | 独创模式 |
-|------|---------|---------|
-| [ccg-workflow](https://github.com/fengshao1227/ccg-workflow) | 多模型交叉验证 (Claude + Codex + Gemini) | 10 策略状态机 / Loop 检测 / Spec 演进 |
-| [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) | 技能可嵌套组合 (autopilot ⊃ ralph ⊃ ultrawork) | 数学模糊度门控 / 三模型顾问 |
-| [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) | 类别 > 模型名 / 人类干预是失败信号 | Hashline LINE#ID / 对抗规划 (Hyperplan) |
-| [superpowers](https://github.com/obra/superpowers) | 方法论即插件 / 零依赖跨平台 | 技能即 TDD 测试 / 反理性化工程 / CSO |
-
----
-
-## 快速开始
-
-在 Claude Code 中运行你的第一个 Workflow：
-
-```javascript
-// 1. 在 Claude Code 对话中输入 "ultrawork" 关键词触发
-// 2. 或直接使用 Workflow 工具
-
-export const meta = {
-  name: 'hello-workflow',
-  description: 'My first workflow',
-  phases: [
-    { title: 'Greet', detail: 'Say hello from a subagent' },
-  ],
-}
-
-phase('Greet')
-const result = await agent('Say hello and confirm the workflow is working.', {
-  label: 'greeter',
-  schema: {
-    type: 'object',
-    properties: {
-      message: { type: 'string' },
-      working: { type: 'boolean' },
-    },
-    required: ['message', 'working'],
-  },
-})
-
-log(`Result: ${result.message} (working: ${result.working})`)
-return result
+```
+workflow-cookbook/
+├─ docs/zh/          # 中文书（纯 Markdown，可在 GitHub 直接阅读）
+├─ docs/en/          # 完整英文镜像
+├─ assets/
+│  └─ transcripts/   # 10 次完成记录（9 个唯一 Run ID，含 1 次续传缓存命中）的原始记录
+├─ index.html        # 配套静态站点（明亮报纸编辑风，客户端渲染 Markdown）
+└─ manifest.json     # 站点目录与中英映射
 ```
 
+文档与网站解耦：`docs/` 是纯 Markdown 的「书」，`index.html` 是渲染层——零构建，可直接部署到 GitHub Pages。
+
 ---
-
-## 技术细节
-
-- 所有 Recipe 均在 Claude Code (Opus 4.6+) 中实测
-- 网站使用纯 HTML/CSS/JS（无构建步骤），部署在 GitHub Pages
-- 中英文完全对照，一键切换
-- 代码示例可直接复制运行
 
 ## 致谢
 
 - [Anthropic](https://anthropic.com) — Claude Code 及 Workflow 特性
-- [御舆 (claude-code-book)](https://github.com/lintsinghua/claude-code-book) — 架构深度剖析的先行者
-- [AI 超元域](https://www.aivi.fyi/llms/claude-code-workflow) — Workflow 特性的早期解读
-- ccg-workflow / oh-my-claudecode / oh-my-openagent / superpowers — 四大优秀 Workflow 系统
+- [AI 超元域 · Claude Code Workflow 解析](https://www.aivi.fyi/llms/claude-code-workflow) — 最早系统解读这一特性的作者之一，本书的最初灵感来源
+- [御舆 · claude-code-book](https://github.com/lintsinghua/claude-code-book) — 架构深度剖析的先行者
+- ccg-workflow / oh-my-claudecode / oh-my-openagent / superpowers — 四大优秀社区 Workflow 系统
+- [Linux.Do 社区](https://linux.do/) — 技术交流与灵感激荡的中文社区
 
 ## License
 
 MIT
 
----
+> **声明：** 本书基于对 Claude Code 公开分发包、类型定义与产品行为的分析编写，并辅以真实运行验证。Claude Code 为 Anthropic PBC 产品；本书不隶属于、未获授权于、也不代表 Anthropic。
 
 <div align="center">
-
-**[English Version](docs/en/README.md)**
-
 <br>
 
-*织经 · Workflow Cookbook — 经纬交织，方成流水线*
+**[English Version](docs/en/00-preface.md)** ｜ *织经 · 经纬交织，方成流水线*
 
 </div>

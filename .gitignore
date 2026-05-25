@@ -1,7 +1,13 @@
 # Debug artifacts
 .playwright-mcp/
+.claude/
 site-*.png
+v2-*.png
+v3-*.png
 nul
+
+# Dev iteration archive (screenshots + round-1 snapshots) — not for publication
+legacy/
 
 # OS
 .DS_Store
