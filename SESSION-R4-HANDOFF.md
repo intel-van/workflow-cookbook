@@ -48,11 +48,11 @@ R4 完成「真实复测沙箱/第三方声称 → 事实分级落地 → 跨模
 - `assets/examples/{review-spa,dead-code-scan,feedback-themes}.js` — **3 个已过校验器、但尚未真跑**的应用级工作流脚本（Phase 3 要真跑）。`assets/samples/{feedback-sample.csv,buggy-cart.js}` — 配套输入（合成数据、已标注）。
 
 ## 6. 可复跑校验命令（新 session 回归用）
-链接/锚点/跨平台/i18n 全量审计脚本（本 session 写的，复刻 `index.html` slugify）：
+链接/锚点/跨平台/i18n 全量审计脚本**已入库**（跨平台，复刻 `index.html` slugify）。**从仓库根运行**：
 ```bash
-node C:/Users/8bit/AppData/Local/Temp/anchor-audit.mjs   # 期望 TOTAL ISSUES: 0
+node scripts/anchor-audit.mjs   # 期望 TOTAL ISSUES: 0（exit 0）；本 session 实测 66 文档 / 801 链接 / 0 问题
 ```
-> 该脚本在 Temp，未入库；如需长期保留可移入 `assets/` 或 `scripts/`。核心逻辑：复刻 slugify + seen 去重，比对 `](#frag)` 与各文件 h2/h3 生成的 id，并校验 `#/lang/id` ∈ manifest、图片资源大小写精确存在。
+> 核心逻辑：复刻 slugify + seen 去重，比对 `](#frag)` 与各文件 h2/h3 生成的 id；校验 `#/lang/id` ∈ manifest（route 正则）、图片资源大小写精确存在（Linux/Pages 安全）。**新增章节后务必重跑**。
 
 ## 7. 待办 / 阻塞（新 session 接力点）
 - **Phase 3（最大块，未动）**：
