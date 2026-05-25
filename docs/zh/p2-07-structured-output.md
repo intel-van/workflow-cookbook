@@ -441,6 +441,12 @@ await agent(
 
 prompt 把每个字段「该填什么、取值范围是什么」逐条说清——这样模型一次就能命中，几乎不触发重试。
 
+<div class="callout tip">
+
+**字段名本身也是给模型的提示——用你将要分支判断的那个命题去命名它。** 含糊的字段名（比如 `ok`）会逼模型自己猜：`ok` 到底是「草稿合格」还是「这一步执行成功」？一旦你代码里的 `if (result.ok)` 跟模型理解的 `ok` 不是同一件事，分支就走反了。曾有第三方报告：在「生成—批评—修复」循环里把评审字段命名为 `ok`，因与冒烟测试的「ok＝成功」语义撞车而误判。我们做过对照实测（同一条**明确写错**的草稿，分别用字段 `ok` 与 `draftIsFactuallyCorrect`），**两者都正确返回了 `false`、并未复现那次崩溃**（`wf_e8cb23ff-829`）——所以这不是一个硬性 bug，而是一种**清晰度风险**：草稿越含糊、字段名取得越关键。把 `ok` 换成 `draftIsFactuallyCorrect`、`shouldRetry`、`hasBlockingIssue` 这类「光看名字就知道 `true` 代表什么」的写法，几乎零成本就消除了隐患。
+
+</div>
+
 ### 最佳实践二：善用 `description` 字段引导模型
 
 JSON Schema 的每个字段都可以带一个 `description`，运行时会把它一并交给模型作为填写指引。**对于语义不那么显然的字段，在 schema 内就近写 `description`，比全靠 prompt 描述更不易遗漏**，也让 schema 自带文档：

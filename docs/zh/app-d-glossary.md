@@ -18,6 +18,7 @@
 | **CLAUDE_CODE_WORKFLOWS** | 门控环境变量；置 `1` 才启用 Workflow 特性。 | [附录 A · A.10](#/zh/app-a) |
 | **CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS** | 关联的实验性标志（Agent Teams）；与 Workflow 同属实验能力族。 | [接地事实表](#/zh/p1-01) |
 | **CLAUDE_CODE_SUBAGENT_MODEL** | 用户/CI 级环境变量；一旦设置，**覆盖一切 per-call `model`**（脚本里的 `opts.model`/`phases[].model` 被静默忽略）。实测本会话设为 `claude-opus-4-7[1m]`，5 个带不同 model 选项的 agent 全跑 Opus（Run `wf_9c94951d-58c`）。 | [附录 E · R4 模型解析记录](#/zh/app-e) |
+| **ANTHROPIC_DEFAULT_HAIKU_MODEL / SONNET / OPUS** | 用户/CI 级环境变量；把对应**模型别名**整体重映射到指定模型。与 `CLAUDE_CODE_SUBAGENT_MODEL` 叠加构成「两层模型覆盖」——本会话两层都指向 Opus，故脚本 `model: 'haiku'` 实跑 Opus（Run `wf_e8cb23ff-829`）。 | [附录 A · A.4](#/zh/app-a) |
 
 ---
 

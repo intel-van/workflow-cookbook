@@ -441,6 +441,12 @@ await agent(
 
 The prompt spells out "what to fill, what the value range is" for each field — so the model hits it in one go, almost never triggering a retry.
 
+<div class="callout tip">
+
+**A field's name is itself a hint to the model — name it after the exact proposition you'll branch on.** A vague field name (like `ok`) forces the model to guess: does `ok` mean "the draft is acceptable" or "this step succeeded"? The moment your code's `if (result.ok)` and the model's notion of `ok` aren't the same thing, the branch goes the wrong way. A third party once reported that, in a generate-critique-fix loop, naming the review field `ok` caused a misjudgment because it collided with a smoke test's "ok = succeeded" semantics. We ran an A/B test (the same **deliberately wrong** draft, with fields `ok` vs `draftIsFactuallyCorrect`) and **both returned `false` correctly — the crash did not reproduce** (`wf_e8cb23ff-829`). So this isn't a hard bug but a **clarity risk**: the vaguer the draft, the more the field name matters. Renaming `ok` to something like `draftIsFactuallyCorrect`, `shouldRetry`, or `hasBlockingIssue` — where the name alone tells you what `true` means — removes the hazard at near-zero cost.
+
+</div>
+
 ### Best practice 2: use the `description` field to guide the model
 
 Every field in a JSON Schema can carry a `description`, which the runtime passes along to the model as filling guidance. **For fields whose semantics aren't obvious, writing a `description` right inside the schema is less prone to omission than relying entirely on the prompt**, and it makes the schema self-documenting:

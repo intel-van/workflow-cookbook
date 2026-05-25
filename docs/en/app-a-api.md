@@ -151,7 +151,7 @@ The root cause is that this book's test session set the environment variable `CL
 
 <div class="callout warn">
 
-**Safe practice**: trust only `agent()`'s `opts.model` to actually decide the model. To run a phase on Haiku, write `model: 'haiku'` on every `agent()` in that phase; treat `phases[].model` as a "label" in the permission dialog, and don't expect it to take effect on its own. Also, if your environment (or CI) sets `CLAUDE_CODE_SUBAGENT_MODEL`, then **all `model` options in the script are silently ignored** — it's a user/CI knob the script cannot control.
+**Safe practice**: trust only `agent()`'s `opts.model` to actually decide the model. To run a phase on Haiku, write `model: 'haiku'` on every `agent()` in that phase; treat `phases[].model` as a "label" in the permission dialog, and don't expect it to take effect on its own. Also, if your environment (or CI) sets `CLAUDE_CODE_SUBAGENT_MODEL`, then **all `model` options in the script are silently ignored** — it's a user/CI knob the script cannot control. Testing reveals a **second layer** of override: `ANTHROPIC_DEFAULT_HAIKU_MODEL` / `SONNET` / `OPUS` remap the **model aliases** wholesale (both pointed to Opus this session, so a script's `model: 'haiku'` ran as Opus too, `wf_e8cb23ff-829`). When debugging "why didn't my chosen model run," check both kinds of variable.
 
 </div>
 

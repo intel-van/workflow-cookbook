@@ -151,7 +151,7 @@ export const meta = {
 
 <div class="callout warn">
 
-**安全做法**：真正决定模型的，只信 `agent()` 的 `opts.model`。要某阶段跑 Haiku，就在该阶段每个 `agent()` 上写 `model: 'haiku'`；把 `phases[].model` 当作权限对话框里的「标签」用，别指望它单独生效。另外，如果你的环境（或 CI）设了 `CLAUDE_CODE_SUBAGENT_MODEL`，那么**脚本里所有 `model` 选项都会被静默忽略**——这是用户/CI 旋钮，脚本无法控制。
+**安全做法**：真正决定模型的，只信 `agent()` 的 `opts.model`。要某阶段跑 Haiku，就在该阶段每个 `agent()` 上写 `model: 'haiku'`；把 `phases[].model` 当作权限对话框里的「标签」用，别指望它单独生效。另外，如果你的环境（或 CI）设了 `CLAUDE_CODE_SUBAGENT_MODEL`，那么**脚本里所有 `model` 选项都会被静默忽略**——这是用户/CI 旋钮，脚本无法控制。实测还有**第二层**覆盖：`ANTHROPIC_DEFAULT_HAIKU_MODEL` / `SONNET` / `OPUS` 会把**模型别名**整体重映射（本会话两层都指向 Opus，故脚本写 `model: 'haiku'` 实跑也是 Opus，`wf_e8cb23ff-829`）。排查「为什么没跑我指定的模型」时，这两类变量都要查。
 
 </div>
 

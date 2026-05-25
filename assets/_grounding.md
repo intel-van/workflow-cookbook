@@ -12,6 +12,7 @@
 | 门控环境变量 | `CLAUDE_CODE_WORKFLOWS=1` | 实测会话环境变量存在 |
 | Claude Code 版本 | v2.1.150 | `@anthropic-ai/claude-code/package.json` |
 | subagent 模型 | `claude-opus-4-7`（由 `CLAUDE_CODE_SUBAGENT_MODEL` 指定） | 实测环境变量 |
+| 模型别名重映射 | `ANTHROPIC_DEFAULT_HAIKU_MODEL/SONNET/OPUS` 把模型别名整体映射到 Opus（与 `CLAUDE_CODE_SUBAGENT_MODEL` 叠加＝两层覆盖） | 实测环境变量（R7 `wf_e8cb23ff-829`） |
 | 关联标志 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` | 实测环境变量 |
 | 触发方式 | ①消息含 `ultrawork` 关键词；②直接调用 Workflow 工具；③具名工作流/技能触发 | 工具定义 |
 | 返回性质 | **始终异步**：立即返回 `taskId`/`runId`，完成时发 `<task-notification>` | 类型定义 + 实测 |
@@ -31,6 +32,8 @@
 - **宿主 API 缺席**：`require`/`process`/`fetch` 全 `undefined`。文件/shell/网络只能放进 `agent()` 叶子（subagent 才有 Read/Write/Bash）。信源 `wf_59bf3654-183`。
 - **编排零模型开销**：无 `agent()` 调用的纯编排工作流 = **0 token / 4ms**。信源 `wf_59bf3654-183`、`wf_2b04881f-6a9`。
 - **`CLAUDE_CODE_SUBAGENT_MODEL` 覆盖一切 per-call model**：本会话该变量 = `claude-opus-4-7[1m]`，5 个带不同 `model` 选项（haiku/inherit/opus/省略/在 haiku 标注阶段内）的 agent **全部跑 Opus**。它是用户/CI 旋钮、脚本无法控制；一旦设置，工作流里的 `model` 选项被静默忽略。信源 `wf_9c94951d-58c` + 环境变量。**副作用**：本会话**无法**经验隔离 `phases[].model` 与 `opts.model`（都被它覆盖）——故二者语义据官方信源采信。另注：subagent 的**自我报告模型不可信**（它读到的是继承自父会话的环境描述文本）。
+- **模型覆盖是两层（R7 实测补充）**：除 `CLAUDE_CODE_SUBAGENT_MODEL`，本会话还设了 `ANTHROPIC_DEFAULT_HAIKU_MODEL`/`SONNET`/`OPUS`（均 = `claude-opus-4-7[1m]`），把**模型别名**整体重映射。故脚本里 `model:'haiku'` 之所以实跑 Opus，是这两层旋钮叠加的结果——写「成本真相」时应同时点出两层，而非只归因 `CLAUDE_CODE_SUBAGENT_MODEL`。信源 `wf_e8cb23ff-829` + 环境变量。
+- **schema 字段命名歧义——第三方报告、实测未复现（R7）**：第三方称字段名 `ok` 在 GCF 循环里会与「冒烟成功」语义碰撞致误判。R7 做了对照实测（同一「明确错误」的草稿，分别用字段 `ok` 与 `draftIsFactuallyCorrect`），**两者都正确返回 `false`，未复现**该歧义。结论：本书把它写成「字段命名清晰度建议」（用你将分支判断的那个命题去命名字段），**不**断言为硬 bug，引用第三方时标「报告、未复现」。信源 `wf_e8cb23ff-829`。
 - **`agentType` 有校验**：未知值在**生成模型之前**（0 token / 4ms）就抛错并列出全部可用 agent：`agent({agentType}): agent type '…' not found. Available agents: claude, claude-code-guide, codex:codex-rescue, Explore, general-purpose, get-current-datetime, init-architect, Plan, planner, statusline-setup, team-architect, team-qa, team-reviewer, ui-ux-designer`。信源 `wf_a222f20f-0f5`。与 `opts.model`（无校验）形成对比。
 - **resume = 100% 缓存命中**：同脚本 + 同 args 重跑 → 5 个结果完全一致、**0 token / 3ms**（首跑 133,691 token / 32,959ms）。信源 `wf_9c94951d-58c`（首跑 + 续传）。**缓存键的精确组成**（`(prompt, opts)` 中 `schema/model/isolation/agentType` 入键、`label`/`phase` 不入键）**属第三方声称、未核实**——本会话只实测了"同脚本同 args = 100% 命中"，未逐一隔离各字段是否入键（见下方第三方清单同条）。
 - **嵌套 `workflow()`**：`workflow({scriptPath}, {n:21})` 内联跑子工作流、args 透传（子返回 `doubled:42`）；未知具名抛错并列出已注册具名工作流（`bughunt, bughunt-lite, deep-research, plan-hunter, review-branch`）；**两层嵌套抛错**：`workflow() cannot be called from within a child workflow — nesting is limited to one level. Inline the inner script or call its agents directly.`。信源 `wf_2b04881f-6a9`。
@@ -163,6 +166,8 @@
 | R6 | feedback-themes | `wf_0771c834-a9f` | 20 | 613,112 | 59,250 | 18→6 主题（聚类粒度的 run 间差异） |
 
 > 并入后，全书唯一 Run ID 由 20（R4 基线主表 17 + R5 3）增至 **23**（+R6 3）。**成本真相**：本会话 `CLAUDE_CODE_SUBAGENT_MODEL=claude-opus-4-7[1m]` 覆盖脚本里的 `model:'haiku'`，故 R5/R6 六跑均按 Opus 计费（R5 三跑≈171.5 万、R6 三跑≈152.1 万 token）。逐项见 `examples-r5.md` / `examples-r6.md`。
+
+> **R7 Phase 0 验证探针** `wf_e8cb23ff-829`（4 agent / 93,026 token / 15,032ms，记于 `examples-r7.md`）：再确认 agentType 校验、`budget.total=null`/`remaining=Infinity`，并实证 `ANTHROPIC_DEFAULT_*_MODEL` 两层覆盖；属**验证用**运行，不并入头条 curated 计数（与 R3 复验组、R6 Phase E 复验同处理）。
 
 ## D. 四大社区系统精华（来自对各仓库源码的真实阅读，第五部用）
 

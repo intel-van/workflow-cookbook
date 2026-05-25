@@ -18,6 +18,7 @@
 | **CLAUDE_CODE_WORKFLOWS** | The gating environment variable; set to `1` to enable the Workflow feature. | [Appendix A · A.10](#/en/app-a) |
 | **CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS** | The related experimental flag (Agent Teams); in the same experimental capability family as Workflow. | [Grounding facts table](#/en/p1-01) |
 | **CLAUDE_CODE_SUBAGENT_MODEL** | A user/CI-level environment variable; once set, it **overrides every per-call `model`** (the script's `opts.model`/`phases[].model` are silently ignored). Tested set to `claude-opus-4-7[1m]` this session, 5 agents with different model options all ran Opus (Run `wf_9c94951d-58c`). | [Appendix E · R4 model-resolution record](#/en/app-e) |
+| **ANTHROPIC_DEFAULT_HAIKU_MODEL / SONNET / OPUS** | User/CI-level environment variables; remap the corresponding **model alias** wholesale to a given model. Stacked with `CLAUDE_CODE_SUBAGENT_MODEL` they form a "two-layer model override" — both pointed to Opus this session, so a script's `model: 'haiku'` ran as Opus (Run `wf_e8cb23ff-829`). | [Appendix A · A.4](#/en/app-a) |
 
 ---
 
