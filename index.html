@@ -35,7 +35,7 @@
   --ease:cubic-bezier(.22,.61,.36,1); --t:200ms;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-size:17px;-webkit-text-size-adjust:100%}
+html{font-size:17px;-webkit-text-size-adjust:100%;scroll-padding-top:64px}
 body{font-family:var(--f-body);color:var(--ink);background:var(--paper);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 ::selection{background:var(--accent-tint);color:var(--accent-press)}
 a{color:inherit;text-decoration:none}
@@ -128,8 +128,8 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
 .code-card::after{content:"";position:absolute;right:0;bottom:0;width:34px;height:calc(100% - 2.1rem);pointer-events:none;opacity:0;background:linear-gradient(to right,rgba(251,249,243,0),var(--code-bg) 78%);border-bottom-right-radius:10px;transition:opacity var(--t) var(--ease)}
 .code-card.is-scrollable::after{opacity:1}
 .code-head{display:flex;align-items:center;justify-content:space-between;padding:.42rem .55rem .42rem .85rem;background:var(--code-head);border-bottom:1px solid var(--code-border)}
-.code-lang{font-family:var(--f-ui);font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute)}
-.code-copy{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-ui);font-size:.7rem;font-weight:600;color:var(--ink-mute);padding:3px 9px;border:1px solid var(--code-border);border-radius:6px;background:var(--card);transition:all var(--t) var(--ease)}
+.code-lang{font-family:var(--f-ui);font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code-copy{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-family:var(--f-ui);font-size:.7rem;font-weight:600;color:var(--ink-mute);padding:3px 9px;border:1px solid var(--code-border);border-radius:6px;background:var(--card);transition:all var(--t) var(--ease)}
 .code-copy:hover{color:var(--accent-text);border-color:var(--accent)}
 .code-copy.done{color:#1a7f37;border-color:#1a7f37}
 .code-copy.fail{color:#c0392b;border-color:#c0392b}
@@ -215,6 +215,7 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
   .np-item{padding-left:20px;padding-right:20px}
 }
 @media(max-width:920px){
+  html{scroll-padding-top:80px}
   :root{--side-w:0px}
   .sidebar{transform:translateX(-100%);transition:transform .3s var(--ease),visibility .3s;width:300px;box-shadow:0 0 40px rgba(0,0,0,.18);visibility:hidden}
   body.nav-open .sidebar{transform:translateX(0);visibility:visible}
@@ -302,7 +303,7 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
 const S = { manifest:null, lang:'zh', id:null, flat:[] };
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
-let routeSeq = 0, mmdSeq = 0, mermaidPromise = null, ticking = false;
+let routeSeq = 0, mmdSeq = 0, mermaidPromise = null, ticking = false, fadeTick = false;
 let tocLinks = [], headEls = [];
 
 const I18N = {
@@ -394,7 +395,7 @@ function bindEvents(){
   });
   window.addEventListener('hashchange', route);
   window.addEventListener('scroll', ()=>{ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } }, {passive:true});
-  window.addEventListener('resize', ()=>{ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } }, {passive:true});
+  window.addEventListener('resize', ()=>{ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } if(!fadeTick){ fadeTick=true; requestAnimationFrame(()=>{ fadeTick=false; refreshFades(); }); } }, {passive:true});
 }
 
 function toggleNav(force){
@@ -564,7 +565,7 @@ function enhance(){
     pre.setAttribute('tabindex','0'); pre.setAttribute('aria-label', lang+(S.lang==='zh'?' 代码（可横向滚动）':' code (scroll horizontally)'));
     const card=document.createElement('div'); card.className='code-card';
     const head=document.createElement('div'); head.className='code-head';
-    const ls=document.createElement('span'); ls.className='code-lang'; ls.textContent=lang; head.appendChild(ls);
+    const ls=document.createElement('span'); ls.className='code-lang'; ls.textContent=lang; ls.title=lang; head.appendChild(ls);
     const btn=document.createElement('button'); btn.className='code-copy'; btn.setAttribute('aria-label',t('copycode'));
     btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>'+t('copy')+'</span>';
     btn.onclick=()=>doCopy(code.textContent, btn);  // copy RAW text; tabs preserved (display tab-size is CSS-only)
@@ -578,6 +579,8 @@ function enhance(){
   });
 }
 
+function refreshFades(){ $$('#content .code-card pre').forEach(pre=>{ const card=pre.closest('.code-card'); if(card) card.classList.toggle('is-scrollable', pre.scrollWidth-pre.clientWidth-pre.scrollLeft>2); }); }
+
 function doCopy(text, btn){
   const flash=(cls,key)=>{ clearTimeout(btn._copyTimer); btn.classList.remove('done','fail'); btn.classList.add(cls); const ic=btn.querySelector('svg'); if(!btn._copyIcon) btn._copyIcon=ic.innerHTML;
     ic.innerHTML = cls==='done' ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
@@ -585,7 +588,7 @@ function doCopy(text, btn){
     btn._copyTimer = setTimeout(()=>{ btn.classList.remove(cls); ic.innerHTML=btn._copyIcon; btn.querySelector('span').textContent=t('copy'); btn.setAttribute('aria-label', t('copycode')); $('#live').textContent=''; },1600); };
   const done=()=>flash('done','copied');
   const fail=()=>flash('fail','copyfail');   // visible feedback when copy is blocked (e.g. file:// / no permission)
-  const fallback=()=>{ const ta=document.createElement('textarea'); try{ ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ok?done():fail(); }catch(e){ fail(); } finally{ if(ta.parentNode) ta.parentNode.removeChild(ta); } };
+  const fallback=()=>{ const ta=document.createElement('textarea'); const prevFocus=document.activeElement; try{ ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ok?done():fail(); }catch(e){ fail(); } finally{ if(ta.parentNode) ta.parentNode.removeChild(ta); if(prevFocus && prevFocus.focus) prevFocus.focus(); } };
   if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(fallback); } else { fallback(); }
 }
 
