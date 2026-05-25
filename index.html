@@ -22,7 +22,7 @@
   --paper:#FBFAF5; --paper-2:#F4F1E8; --card:#FFFFFF;
   --ink:#1C1C1E; --ink-soft:#3A3A3E; --ink-mute:#6B6B6E; --ink-faint:#6E685C;
   --accent:#F05C00;          /* bright orange: rules, progress, large glyphs */
-  --accent-text:#B8430F;     /* darker orange: small text on paper/tint (WCAG AA) */
+  --accent-text:#AF3E0D;     /* darker orange: small text on paper/tint (WCAG AA, >=4.5:1) */
   --accent-press:#A33C00;
   --accent-tint:#FCEFE6;
   --rule:#1C1C1E; --line:#E4DFD2; --line-2:#EEEAE0;
@@ -35,7 +35,7 @@
   --ease:cubic-bezier(.22,.61,.36,1); --t:200ms;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-size:17px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{font-size:17px;-webkit-text-size-adjust:100%}
 body{font-family:var(--f-body);color:var(--ink);background:var(--paper);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 ::selection{background:var(--accent-tint);color:var(--accent-press)}
 a{color:inherit;text-decoration:none}
@@ -85,6 +85,7 @@ img{max-width:100%}
 .lang-toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
 .lang-toggle button{font-family:var(--f-ui);font-size:.72rem;font-weight:600;padding:5px 13px;color:var(--ink-mute);transition:all var(--t) var(--ease)}
 .lang-toggle button.on{background:var(--ink);color:var(--paper)}
+.lang-toggle button:not(.on):hover{color:var(--accent-text);background:var(--paper-2)}
 .ghbtn{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-ui);font-size:.72rem;font-weight:600;color:var(--ink-mute);border:1px solid var(--line);border-radius:999px;padding:5px 12px;transition:all var(--t) var(--ease)}
 .ghbtn:hover{color:var(--accent-text);border-color:var(--accent)}
 .menu-btn{display:none}
@@ -134,6 +135,7 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
 .code-copy.fail{color:#c0392b;border-color:#c0392b}
 .code-copy svg{width:12px;height:12px}
 .code-card pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;background:transparent}
+.code-card pre:focus-visible{outline-offset:-2px}
 .code-card pre::-webkit-scrollbar{height:9px}
 .code-card pre::-webkit-scrollbar-thumb{background:#dcd5c4;border-radius:5px}
 .code-card code{font-family:var(--f-mono);font-size:.83rem;line-height:1.62;color:var(--code-ink);tab-size:2;-moz-tab-size:2;white-space:pre}
@@ -165,7 +167,7 @@ html[lang="en"] .main>p:first-of-type::first-letter,html[lang="en"] .main .dropc
 
 .ch-nav{display:flex;gap:14px;margin-top:60px;padding-top:28px;border-top:2px solid var(--rule)}
 .ch-nav a{flex:1;font-family:var(--f-ui);padding:14px 16px;border:1px solid var(--line);border-radius:10px;transition:all var(--t) var(--ease);background:var(--card)}
-.ch-nav a:hover{border-color:var(--accent);transform:translateY(-2px)}
+.ch-nav a:hover,.ch-nav a:focus-visible{border-color:var(--accent);transform:translateY(-2px)}
 .ch-nav .dir{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute)}
 .ch-nav .t{font-size:.95rem;font-weight:600;color:var(--ink);margin-top:3px}
 .ch-nav .next{text-align:right}
@@ -407,6 +409,7 @@ function switchLang(lang){ if(lang!==S.lang){ saveLang(lang); location.hash='#/'
 
 /* ───────────────────────── Router ───────────────────────── */
 function route(){
+  if(!S.manifest) return;   // manifest failed to load — nothing to route
   const m = location.hash.match(/^#\/(zh|en)\/([^/]+)$/);
   let lang = S.lang, id = 'home';
   if(m){ lang=m[1]; id=m[2]; }
@@ -542,6 +545,7 @@ function enhance(){
     ensureMermaid().then(mm=>{
       mblocks.forEach(code=>{
         const pre = code.parentElement;
+        if(!pre || !pre.parentNode) return;   // chapter switched mid-load: node detached
         const fig = document.createElement('figure'); fig.className='mermaid-fig'; fig.setAttribute('role','img'); fig.setAttribute('aria-label', S.lang==='zh'?'流程图示（含义见正文描述）':'Diagram (see the surrounding text for its meaning)');
         const src = code.textContent;
         pre.parentNode.replaceChild(fig, pre);
@@ -611,6 +615,7 @@ function onScroll(){
   if(!tocLinks.length) return;
   let cur=null;
   for(const hd of headEls){ if(hd.getBoundingClientRect().top<140) cur=hd.id; }
+  if(headEls.length && (h-sc)<20){ cur=headEls[headEls.length-1].id; }   // at page bottom: keep last heading active
   tocLinks.forEach(a=>{ const on=a.dataset.id===cur; a.classList.toggle('active', on); if(on){ a.setAttribute('aria-current','true'); } else { a.removeAttribute('aria-current'); } });
 }
 
