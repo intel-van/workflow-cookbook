@@ -251,7 +251,7 @@ while (budget.remaining() > 50_000) { /* ... 派 agent ... */ }
 
 <div class="callout info">
 
-**关于「预算耗尽抛什么错」与同步超时**：官方只描述了**行为**——预算耗尽后再调 `agent()` 会出错、达到 1000 agent 上限会出错——但**没有给出错误类名**。社区第三方资料（某 YouTuber 仓库，非官方）声称这两类错误的类名分别是 `WorkflowBudgetExceededError` 与 `WorkflowAgentCapError`——这两个**类名仍属第三方声称、本书未核实**，所以别在代码里 `catch` 某个具名异常。但其中一条曾与类名一起被列为「未核实」的说法，本书现已**实测确认**：脚本 VM 的 **30000ms 同步超时**是真的（Run `wf_e3b2b123-5f4`：一个无 `await` 的长同步循环在 30,222ms 处被终止，报错原文 `Script execution timed out after 30000ms`）。注意它只约束**同步**执行（用来掐死死循环），**不是** wall-clock 上限——带 `await agent()` 的工作流照样能跑好几分钟。
+**关于「预算耗尽抛什么错」与同步超时**：官方只描述了**行为**——预算耗尽后再调 `agent()` 会出错、达到 1000 agent 上限会出错——但**没有给出错误类名**。社区第三方资料（某 YouTuber 仓库，非官方）声称这两类错误的类名分别是 `WorkflowBudgetExceededError` 与 `WorkflowAgentCapError`——这两个**类名仍属第三方声称、本书未核实**，所以别在代码里 `catch` 某个具名异常。但其中一条曾与类名一起被列为「未核实」的说法，本书现已**实测确认**：脚本 VM 的 **30000ms 同步超时**是真的（Run `wf_e3b2b123-5f4`：一个无 `await` 的长同步循环在 30,222ms 处被终止，报错原文 `Error: Script execution timed out after 30000ms`）。注意它只约束**同步**执行（用来掐死死循环），**不是** wall-clock 上限——带 `await agent()` 的工作流照样能跑好几分钟。
 
 </div>
 

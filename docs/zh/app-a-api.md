@@ -114,7 +114,7 @@ return result
 
 <div class="callout info">
 
-**关于 `console` / `setTimeout` / `clearTimeout`**：在 `wf_59bf3654-183`（一个 0 agent 的自省工作流）里，`typeof console === 'object'`、`typeof setTimeout === 'function'`、`typeof clearTimeout === 'function'`，且 `console.log(...)` 调用成功（输出进 workflow 日志）。日常叙述进度优先用官方的 `log()`；`console.log` 更像调试旁路。这三个全局**确实存在**是实测事实；但第三方资料里关于 VM 同步超时（`setTimeout` 相关的具体毫秒数）等说法本书未核实，见 [A.14](#a14-第三方未核实清单谨慎)。
+**关于 `console` / `setTimeout` / `clearTimeout`**：在 `wf_59bf3654-183`（一个 0 agent 的自省工作流）里，`typeof console === 'object'`、`typeof setTimeout === 'function'`、`typeof clearTimeout === 'function'`，且 `console.log(...)` 调用成功（输出进 workflow 日志）。日常叙述进度优先用官方的 `log()`；`console.log` 更像调试旁路。这三个全局**确实存在**是实测事实【实测，`wf_59bf3654-183`】。另有一条相关的实测事实：**VM 对同步执行设有 30000ms 超时**【实测，`wf_e3b2b123-5f4`】——一个无 `await` 的长同步循环被中止、工作流 **failed**（实测耗时 30,222ms），逐字报错 `Error: Script execution timed out after 30000ms`。它约束的是**同步**工作、用于抓死循环，**不是墙钟上限**（带 `await agent(...)` 的异步工作流照样可跑数分钟），详见 [A.14](#a14-第三方未核实清单谨慎) 顶部的实测升级表。
 
 </div>
 
@@ -182,12 +182,12 @@ await agent(prompt, {
 
 | 选项 | 口径 | 说明 |
 |---|---|---|
-| `label` | 【官方】 | 覆盖 `/workflows` 里的显示标签；描述性 label 利于搜索与观察。**不参与续传缓存键**——改它不会让缓存失效。 |
-| `phase` | 【官方】 | 显式归组；与 `meta.phases.title` 精确匹配。**在 pipeline/parallel 内部务必用它**，避免对全局 `phase()` 的竞争。同样**不参与缓存键**。 |
-| `schema` | 【官方】 | JSON Schema；校验在工具调用层，故模型会自动重试到合规。**参与续传缓存键**。 |
-| `model` | 【官方】 | 覆盖该 agent 模型；**省略则继承主循环模型**（推荐，除非用户指定或任务足够简单可用 `'haiku'`）。**参与续传缓存键**。注意会被 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖（见 A.4）。 |
-| `isolation: 'worktree'` | 【官方】 | 在全新 git worktree 运行；**昂贵**（约 200–500ms 启动 + 磁盘/agent），仅当并行 agent 改文件会冲突时用；无改动自动清理；**结果返回 worktree 路径与分支**。**参与续传缓存键**。 |
-| `agentType` | 【官方】【实测有校验】 | 用自定义 subagent 类型而非默认；**与 Agent 工具同一注册表解析**；与 `schema` 可组合（自定义 agent 的系统提示会被追加 StructuredOutput 指令）。**参与续传缓存键**。 |
+| `label` | 【官方】 | 覆盖 `/workflows` 里的显示标签；描述性 label 利于搜索与观察。（第三方称不参与续传缓存键，本书未独立核实精确组成。） |
+| `phase` | 【官方】 | 显式归组；与 `meta.phases.title` 精确匹配。**在 pipeline/parallel 内部务必用它**，避免对全局 `phase()` 的竞争。（第三方称不参与续传缓存键，本书未独立核实精确组成。） |
+| `schema` | 【官方】 | JSON Schema；校验在工具调用层，故模型会自动重试到合规。（第三方称参与续传缓存键，本书未独立核实精确组成。） |
+| `model` | 【官方】 | 覆盖该 agent 模型；**省略则继承主循环模型**（推荐，除非用户指定或任务足够简单可用 `'haiku'`）。注意会被 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖（见 A.4）。（第三方称参与续传缓存键，本书未独立核实精确组成。） |
+| `isolation: 'worktree'` | 【官方】 | 在全新 git worktree 运行；**昂贵**（约 200–500ms 启动 + 磁盘/agent），仅当并行 agent 改文件会冲突时用；无改动自动清理；**结果返回 worktree 路径与分支**。（第三方称参与续传缓存键，本书未独立核实精确组成。） |
+| `agentType` | 【官方】【实测有校验】 | 用自定义 subagent 类型而非默认；**与 Agent 工具同一注册表解析**；与 `schema` 可组合（自定义 agent 的系统提示会被追加 StructuredOutput 指令）。（第三方称参与续传缓存键，本书未独立核实精确组成。） |
 
 ### `agentType` 有校验，`model` 没有：一个真实的不对称【实测】
 
@@ -204,7 +204,8 @@ statusline-setup, team-architect, team-qa, team-reviewer, ui-ux-designer
 
 > 也就是说，拼错 `agentType` 是「快速失败、零成本」——这点对调试非常友好。（注：默认 subagent 的类型名是 `workflow-subagent`，记录在每 agent 的 `agent-<id>.meta.json` 旁车文件里。）
 
-- **`opts.model` 无校验**：这点本书**未能实测**（被 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖掩盖）。第三方资料声称 `model` 接受 `'inherit'` 字面量、且拼错（如 `'hauku'`）不在解析期报错、passthrough 后才失败——**（社区第三方资料声称，本书未独立实测）**。本书的稳妥建议：把 `model` 当成只接受你确认过的值（如 `'haiku'`、省略），不要依赖拼错的「宽容」。
+- **`opts.model` 无提交/解析期校验**【实测，`wf_dace2fc6-966`】：传一个 bogus 字符串 `'totally-not-a-real-model-xyz'`，它**不在提交/解析期被拒**，agent 照常运行（本会话因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖、实跑 Opus）。这点与 `agentType` 形成对比：`agentType` 是「快速失败、零成本」，`model` 则不在解析期拦截无效值。
+- 但有两点本书**未能核实**——`'inherit'` 字面量的**精确语义**，以及「拼错（如 `'hauku'`）会在 **API 调用时** passthrough 后才失败」这一步：**（社区第三方资料声称，本书未独立实测）**。后者因本会话 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖了每调用 model、bogus 串从未真正发往 API，故 API 期失败未能观测。本书的稳妥建议：把 `model` 当成只接受你确认过的值（如 `'haiku'`、省略），不要依赖拼错的「宽容」。
 
 ---
 
@@ -322,7 +323,7 @@ For N independent samples, include the index in the agent label or prompt.
 
 **实测**（`wf_9c94951d-58c`）：首跑 5 个 agent = **133,691 token / 32,959ms**；带 `{ scriptPath, resumeFromRunId }` **原样重跑** → 同一 Run ID、5 个结果完全一致、**0 新 token / 3ms**。也就是说，未改动的续传是「100% 缓存命中」，几乎零成本。
 
-**缓存键由什么组成**：缓存键基于每个 `agent()` 的 `(prompt, opts)`；其中 `label` / `phase` 是装饰性的、**不参与缓存键**——改它们不会让缓存失效。至于「缓存键恰好等于 `schema` / `model` / `isolation` / `agentType` 这几个字段的精确组合」——**（社区第三方资料声称，本书未独立实测精确组成）**；本书已实测确认的是「改 `label` / `phase` 不破坏缓存、改 `prompt` 会」。
+**缓存键由什么组成**：本书**唯一实测确认**的是「同脚本 + 同 args 重跑 = 100% 缓存命中 / 0 新 token」（`wf_9c94951d-58c`，见上）。至于缓存键的**精确字段组成**——「`schema` / `model` / `isolation` / `agentType` 入键、`label` / `phase` 不入键」——**（社区第三方资料声称，本书未独立核实）**：本书只测了「同脚本同 args = 100% 命中」，并未逐一隔离哪些字段入键。详见 [A.14](#a14-第三方未核实清单谨慎)。
 
 ---
 
@@ -370,7 +371,7 @@ const n = input.n ?? 1   // 现在可安全读字段
 >
 > | 曾经第三方声称 → 现已实测 | 证据（Run ID / 报错原文） |
 > |---|---|
-> | VM **30000ms 同步超时** | Run `wf_e3b2b123-5f4`：无 `await` 的长同步循环在 30,222ms 处被终止，报错 `Script execution timed out after 30000ms`。仅约束**同步**执行，非 wall-clock 上限。 |
+> | VM **30000ms 同步超时** | Run `wf_e3b2b123-5f4`：无 `await` 的长同步循环在 30,222ms 处被终止，报错 `Error: Script execution timed out after 30000ms`。仅约束**同步**执行，非 wall-clock 上限。 |
 > | `isolation: 'remote'` 在本 build 禁用 | Run `wf_dace2fc6-966`：抛 `agent({isolation:'remote'}) is not available in this build`。**精化**：运行时只特判 `'worktree'`(执行) 与 `'remote'`(拒绝)，其它未知值**静默忽略**、不报错。 |
 > | `meta` 保留键被拒（提交期） | 提交期静态拒绝，以 `constructor` 为例，报错 `reserved key name not allowed in meta: constructor`。（`__proto__` / `prototype` 未逐一测，但拒绝机制已确认。） |
 > | `opts.model` **无提交期校验** | Run `wf_dace2fc6-966`：`model: 'totally-not-a-real-model-xyz'` 提交期不报错、agent 照跑。⚠ 本会话 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖了每调用 model，故「之后在 API 调用处失败」未能观察到。 |
@@ -383,7 +384,7 @@ const n = input.n ?? 1   // 现在可安全读字段
 | 预算耗尽时在途 agent 完成且结果保留、不再启新 agent | **未核实**。 |
 | schema 经 **AJV** 编译校验、subagent 不调工具时「最多再催两次」 | **未核实**。本书只确认「带 schema 必返回已验证对象、不匹配则重试」（官方+实测），**不**断言确切重试次数。 |
 | `opts.model` 的 `'inherit'` 字面量的**确切语义** | **未核实精确语义**。注：「`model` 无提交期校验」部分已实测升级（见本节顶部表）；对比 `agentType` 实测确认有校验（A.5）。 |
-| resume 缓存键 = `schema` / `model` / `isolation` / `agentType` 的**精确组合** | **未核实精确组成**。本书实测确认的是「`label` / `phase` 不入键、`prompt` 入键」（A.10）。 |
+| resume 缓存键 = `schema` / `model` / `isolation` / `agentType` 入键、`label` / `phase` 不入键的**精确组成** | **未核实精确组成**。本书实测确认的仅是「同脚本 + 同 args = 100% 缓存命中」（`wf_9c94951d-58c`，A.10），未逐一隔离哪些字段入键。 |
 
 ---
 

@@ -98,7 +98,7 @@
 | **并发上限 / concurrency limit** | 单工作流同时运行 agent 数上限：`min(16, CPU核心数 − 2)`，超出排队。 | [第 21 章](#/zh/p4-21) |
 | **agent 总数上限 / agent cap** | 单工作流生命周期 agent 总数硬上限 **1000**（失控循环兜底）。 | [附录 A · A.9](#/zh/app-a) |
 | **脚本体积上限 / script size cap** | 单脚本上限 **524288 字节（512KB）**（工具 input-schema 的 `script.maxLength`）。 | [附录 A · A.9](#/zh/app-a) |
-| **VM 同步超时 / sync timeout** | 脚本**同步**执行的硬上限 **30000ms**——长同步循环（如 `for(;;){}`）会被中止、workflow `failed`（原文 `Script execution timed out after 30000ms`，实测耗时 30222ms，Run `wf_e3b2b123-5f4`）。**只约束同步段**：含 `await agent()` 的异步工作流可正常跑数分钟。 | [附录 E · R4 沙箱记录](#/zh/app-e) |
+| **VM 同步超时 / sync timeout** | 脚本**同步**执行的硬上限 **30000ms**——长同步循环（如 `for(;;){}`）会被中止、workflow `failed`（原文 `Error: Script execution timed out after 30000ms`，实测耗时 30222ms，Run `wf_e3b2b123-5f4`）。**只约束同步段**：含 `await agent()` 的异步工作流可正常跑数分钟。 | [附录 E · R4 沙箱记录](#/zh/app-e) |
 | **WorkflowAgentCapError / WorkflowBudgetExceededError** | 达 1000 agent 上限 / 预算耗尽时的错误**类名**。官方只描述行为、**未给类名**——类名属**社区第三方资料声称，本书未独立实测**（未触发这两个上限）。 | [附录 E · 参考解读](#/zh/app-e) |
 | **stallMs / 停滞重试** | 据**社区第三方资料声称**：agent 停滞默认阈值 180000ms、重试 ≤5 次。**本书未核实**（未触发）。 | [附录 E · 参考解读](#/zh/app-e) |
 

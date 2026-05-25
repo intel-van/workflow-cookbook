@@ -32,14 +32,14 @@
 - **编排零模型开销**：无 `agent()` 调用的纯编排工作流 = **0 token / 4ms**。信源 `wf_59bf3654-183`、`wf_2b04881f-6a9`。
 - **`CLAUDE_CODE_SUBAGENT_MODEL` 覆盖一切 per-call model**：本会话该变量 = `claude-opus-4-7[1m]`，5 个带不同 `model` 选项（haiku/inherit/opus/省略/在 haiku 标注阶段内）的 agent **全部跑 Opus**。它是用户/CI 旋钮、脚本无法控制；一旦设置，工作流里的 `model` 选项被静默忽略。信源 `wf_9c94951d-58c` + 环境变量。**副作用**：本会话**无法**经验隔离 `phases[].model` 与 `opts.model`（都被它覆盖）——故二者语义据官方信源采信。另注：subagent 的**自我报告模型不可信**（它读到的是继承自父会话的环境描述文本）。
 - **`agentType` 有校验**：未知值在**生成模型之前**（0 token / 4ms）就抛错并列出全部可用 agent：`agent({agentType}): agent type '…' not found. Available agents: claude, claude-code-guide, codex:codex-rescue, Explore, general-purpose, get-current-datetime, init-architect, Plan, planner, statusline-setup, team-architect, team-qa, team-reviewer, ui-ux-designer`。信源 `wf_a222f20f-0f5`。与 `opts.model`（无校验）形成对比。
-- **resume = 100% 缓存命中**：同脚本 + 同 args 重跑 → 5 个结果完全一致、**0 token / 3ms**（首跑 133,691 token / 32,959ms）。缓存键 = agent 的 `(prompt, opts)` 中 `schema/model/isolation/agentType`；`label`/`phase` **不入键**、改它们不会让缓存失效。信源 `wf_9c94951d-58c`（首跑 + 续传）。
+- **resume = 100% 缓存命中**：同脚本 + 同 args 重跑 → 5 个结果完全一致、**0 token / 3ms**（首跑 133,691 token / 32,959ms）。信源 `wf_9c94951d-58c`（首跑 + 续传）。**缓存键的精确组成**（`(prompt, opts)` 中 `schema/model/isolation/agentType` 入键、`label`/`phase` 不入键）**属第三方声称、未核实**——本会话只实测了"同脚本同 args = 100% 命中"，未逐一隔离各字段是否入键（见下方第三方清单同条）。
 - **嵌套 `workflow()`**：`workflow({scriptPath}, {n:21})` 内联跑子工作流、args 透传（子返回 `doubled:42`）；未知具名抛错并列出已注册具名工作流（`bughunt, bughunt-lite, deep-research, plan-hunter, review-branch`）；**两层嵌套抛错**：`workflow() cannot be called from within a child workflow — nesting is limited to one level. Inline the inner script or call its agents directly.`。信源 `wf_2b04881f-6a9`。
 - **subagent 能用 MCP（经 ToolSearch 按需加载）**：默认 `workflow-subagent` 启动时持有 **0 个 `mcp__` 工具**（本机为延迟工具环境），但有 `ToolSearch`——可按需加载并调用。实测 `mcp__context7__resolve-library-id` 端到端跑通，并发现其 schema 要求 `query`+`libraryName` 都必填。信源 `wf_1d4c6a71-56a`（工具自省探针）、`wf_d8aa0772-ced`（端到端）。**结论**：多数工作流无需 MCP（官方 6 例中 4 例零 MCP）；需要时它确实可用。默认 agentType 名 = `workflow-subagent`（per-agent sidecar `agent-<id>.meta.json` 记录）。
 
 - **meta 保留键被拒（实测）**：`export const meta = {…, constructor: 'x'}` 在**提交时**被拒，原文 `Script must begin with export const meta = { name, description, phases } (pure literal). meta must be a pure literal: reserved key name not allowed in meta: constructor`。（提交拒绝，无 Run ID。）
 - **isolation 校验（实测，并纠正第三方说法）**：`isolation:'remote'` → 抛 `agent({isolation:'remote'}) is not available in this build`（证实 'remote' 本 build 禁用）；但 `isolation:'totally-bogus'` **不抛、被静默忽略**，agent 正常返回——即运行时只特判 `'worktree'`（执行隔离）与 `'remote'`（拒绝），**其它未知值被忽略**，并非第三方所称"只接受 'worktree'、其余报错"。信源 `wf_dace2fc6-966`。
 - **model 无提交期校验（实测，部分）**：bogus 字符串 `'totally-not-a-real-model-xyz'` 不在提交/解析期被拒，agent 正常运行（因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖、实跑 Opus）。"拼错会在 API 调用时失败"那一步因覆盖**未观测到**。信源 `wf_dace2fc6-966`。
-- **VM 同步超时 = 30000ms（实测）**：一个 `for(i=0;i<1e12;i++)` 的长同步循环被中止，workflow **failed**，错误原文 `Script execution timed out after 30000ms`，实测耗时 30222ms。证实"同步执行 30s 上限"（只约束同步、抓死循环；异步工作流不受此限）。信源 `wf_e3b2b123-5f4`。
+- **VM 同步超时 = 30000ms（实测）**：一个 `for(i=0;i<1e12;i++)` 的长同步循环被中止，workflow **failed**，错误原文 `Error: Script execution timed out after 30000ms`，实测耗时 30222ms。证实"同步执行 30s 上限"（只约束同步、抓死循环；异步工作流不受此限）。信源 `wf_e3b2b123-5f4`。
 
 ### 官方工具定义已明确的硬约束（可放心用）
 - **并发上限** = `min(16, CPU 核心数 − 2)`（官方工具描述原文）；超出**排队**、非报错。
@@ -102,7 +102,7 @@
 - `meta.description`：**一行，显示在权限确认对话框**（authoritative）。
 - `meta.whenToUse`：**显示在工作流列表**（authoritative）。
 - `meta.phases[].model`：**运行时效果未定（本会话无法核实）**。官方工具描述把它说成"某阶段用特定模型 override 时加上"，措辞含糊；第三方仓库则称它**纯展示用、运行时不读**。本会话因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖（见 A2）**未能独立隔离**二者。**安全做法**：真正设模型只信 `agent()` 的 `opts.model`——要某阶段跑 Haiku，就在每个 `agent()` 上写 `model:'haiku'`；`phases[].model` 当"对话框标签"用，别指望它单独生效。（**更正记录**：R3 写"某阶段的模型覆盖（authoritative）"；R4 我一度据第三方仓库改为"纯展示用（权威）"；两者都不严谨，现按"未核实 + 安全做法"陈述。）
-- `opts.model`：覆盖该 agent 模型；官方明确"省略则继承主循环模型"。第三方仓库另称它接受 `'inherit'` 字面量、且**无校验**（拼错如 `'hauku'` 不在解析期报错、passthrough 后才失败）——这两点标「第三方声称、未核实」。对比：`agentType` **我已实测确认有校验**（未知值 0 token 抛错并列出可用 agent，`wf_a222f20f-0f5`）。
+- `opts.model`：覆盖该 agent 模型；官方明确"省略则继承主循环模型"。**无提交/解析期校验这一点我已实测确认**：bogus 字符串 `'totally-not-a-real-model-xyz'` 不在解析期被拒、agent 照常运行（`wf_dace2fc6-966`，见 A2 第 41 行）。第三方仓库另称它接受 `'inherit'` 字面量、且"拼错会在 API 调用时 passthrough 后才失败"——**这两点（`'inherit'` 的精确语义、API 期才失败）标「第三方声称、未核实」**（本会话因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖未能观测 API 期失败）。对比：`agentType` 我也已实测确认有校验（未知值 0 token 抛错并列出可用 agent，`wf_a222f20f-0f5`）。
 - `opts.isolation:'worktree'`：**昂贵（~200–500ms 启动 + 磁盘/agent）**；无改动自动清理；**结果返回 worktree 路径与分支**（authoritative）。
 - `opts.agentType`：**与 Agent 工具同一注册表解析**；与 schema 组合时，**自定义 agent 的系统提示会被追加 StructuredOutput 指令**（authoritative）。
 - `budget.spent()`：返回**本回合已花的 output token**（主循环 + 所有工作流**共享池**）；`budget.total` 是**硬上限**，达到后再调 `agent()` 抛错（authoritative，"output token" 正确）。
@@ -142,7 +142,7 @@
 | 16 | agentType 校验 | `wf_a222f20f-0f5` | —(抛错于生成前) | 0 | 4 | 未知 agentType 抛错并列出 14 个可用 agent |
 | 17 | 嵌套 workflow（0 agent） | `wf_2b04881f-6a9` | 0 | 0 | 29 | 子工作流 args 透传 + 一层嵌套上限 + 未知名抛错 |
 | 18 | opts 校验（isolation/model） | `wf_dace2fc6-966` | 3 | 52,014 | 5,253 | remote 禁用抛错；bogus isolation/model 被忽略、agent 正常 |
-| 19 | VM 同步超时（长循环，**failed**） | `wf_e3b2b123-5f4` | 0 | 0 | 30,222 | `Script execution timed out after 30000ms`——证实 30s 同步上限 |
+| 19 | VM 同步超时（长循环，**failed**） | `wf_e3b2b123-5f4` | 0 | 0 | 30,222 | `Error: Script execution timed out after 30000ms`——证实 30s 同步上限 |
 
 > **另：R3 基线复验组**（记录于 `assets/transcripts/r3-reverification.md`，未列入上表）：`wf_2e7d82d6-d13`(hello)、`wf_3b5bbac7-e96`(parallel)、`wf_58225d5c-1e8`(pipeline)、**`wf_fd09a6ed-38a`（budget 探针：返回 `{totalIsNull:true, spentIncreased:true, remaining Before/After:"Infinity", guardRounds:0}`；1 agent / 26,211 token / 6,933ms；p2-09 与 app-f 据此引用——**真实可溯源**）**。
 > ⚠️ **校验某 Run ID 是否有信源时，务必检索 `assets/transcripts/` 的全部文件**（含 R3 各组），不要仅凭本表判断——本表非全集。（教训：曾有协作者只查本表+r4，误判 `wf_fd09a6ed-38a` 为虚构并删除合法内容。）

@@ -14,7 +14,7 @@
 
 1. **公开分发包与类型定义**——Claude Code 的 npm 分发包及其内含的工具类型定义；
 2. **产品行为分析**——在真实 Claude Code 会话中观察到的环境变量、工具回执、完成通知；
-3. **真实运行**——我们亲自在本机跑出的工作流，共 **10 次完成记录 / 9 个唯一 Run ID**（续传复用已有 Run ID，不计为独立 ID；见 [E.3](#e3-真实运行记录10-次完成记录9-个唯一-run-id覆盖的机制)），其用量/返回值原样记录在 `assets/transcripts/`。
+3. **真实运行**——我们亲自在本机跑出的工作流。[E.3](#e3-真实运行记录第一批10-次完成记录9-个唯一-run-id覆盖的机制) 的表是**第一批 10 次完成记录**；[§E.3.1](#e31-r4-真实运行实测复现第三方声称) 增补 R4 批次（运行 #11–#19），再加 R3 基线复验组，全书真实运行语料合计 **19 条运行记录（18 完成 + 1 因 30s 同步超时 failed）/ 17 个唯一 Run ID**（续传复用已有 Run ID、提交即被拒者不计为独立 ID）。所有用量/返回值原样记录在 `assets/transcripts/`。
 
 凡**未实跑、仅作示意**的脚本，正文已明确标注「（示意，未实跑）」。凡引用真实数据，均注明 Run ID 与出处。我们**不编造** API、参数或输出。
 
@@ -56,13 +56,13 @@
 
 ---
 
-## E.3 真实运行记录（10 次完成记录，9 个唯一 Run ID，覆盖的机制）
+## E.3 真实运行记录（第一批：10 次完成记录，9 个唯一 Run ID，覆盖的机制）
 
-全书凡引用具体用量（`agent_count`/`tool_uses`/`total_tokens`/`duration_ms`）或返回值的地方，均来自下列**在本机真实跑出**的工作流——共 **10 次完成记录**，对应 **9 个唯一 Run ID**（第 4 行的续传复用了第 1 行的 Run ID，不计为独立 ID）。原始记录存于仓库 `assets/transcripts/`，所有数字未经修改。
+下表是本书**第一批**真实运行——共 **10 次完成记录**，对应 **9 个唯一 Run ID**（第 4 行的续传复用了第 1 行的 Run ID，不计为独立 ID），均**在本机真实跑出**。完整真实语料不止于此批：另含 [§E.3.1](#e31-r4-真实运行实测复现第三方声称) 的 R4 批次（运行 #11–#19）与 R3 基线复验组，全书合计 **19 条运行记录（18 完成 + 1 因 30s 同步超时 failed）/ 17 个唯一 Run ID**。原始记录均存于仓库 `assets/transcripts/`，所有数字未经修改。
 
 ![Claude Code /workflows 面板：本会话 10 次完成的工作流](assets/images/workflows-panel.png)
 
-> **实证截图**：Claude Code 内置 `/workflows` 面板的实截——本会话 **10 次完成**，逐行显示 agent 数 / token / 耗时，与下表一一对应。注意 `hello-workflow` 出现两行：一次是脚本运行（约 26k token / 10s），一次 `0s` 是 `resumeFromRunId` **缓存命中**（0 token，印证 [第 22 章 · 断点续传与缓存](#/zh/p4-22)）。
+> **实证截图**：Claude Code 内置 `/workflows` 面板的实截——截图显示**本会话 10 次完成**（即下表 E.3 这一批），逐行显示 agent 数 / token / 耗时，与下表一一对应。注意 `hello-workflow` 出现两行：一次是脚本运行（约 26k token / 10s），一次 `0s` 是 `resumeFromRunId` **缓存命中**（0 token，印证 [第 22 章 · 断点续传与缓存](#/zh/p4-22)）。本书真实语料**不止于此截图**——另含 R3/R4 的 transcript 记录（见 [§E.3.1](#e31-r4-真实运行实测复现第三方声称)），合计 **19 条记录 / 17 个唯一 Run ID**。
 
 | # | Workflow | Run ID | Task ID | 覆盖的机制 | 关键真实数据 | 记录文件 |
 |---|---|---|---|---|---|---|
@@ -102,8 +102,9 @@
 | 记录文件 | 覆盖的机制 | 关键 Run ID |
 |---|---|---|
 | `sandbox-r4.md` | 确定性**双层防护**（字面量提交期拒绝 + 别名运行时抛错）；注入全局（`console`/`setTimeout`/`log`/`budget`）；`args` 原样透传（对象保持对象）；宿主 API（`require`/`process`/`fetch`）缺席；`CLAUDE_CODE_SUBAGENT_MODEL` 覆盖 per-call model | `wf_59bf3654-183`（沙箱自省，0 agent）、`wf_9c94951d-58c`（模型解析，5 agent） |
-| `api-facts-r4.md` | `agentType` 有校验（未知值 0 token 抛错并列出可用 agent）vs `model` 无校验；resume = 100% 缓存命中（0 token）；嵌套 `workflow()` 一层上限 + args 透传 | `wf_a222f20f-0f5`、`wf_9c94951d-58c`（续传）、`wf_2b04881f-6a9` |
+| `api-facts-r4.md` | `agentType` 有校验（未知值 0 token 抛错并列出可用 agent）；resume = 100% 缓存命中（0 token）；嵌套 `workflow()` 一层上限 + args 透传 | `wf_a222f20f-0f5`、`wf_9c94951d-58c`（续传）、`wf_2b04881f-6a9` |
 | `repo-claims-r4.md` | 逐条实测第三方仓库声称：meta 保留键被拒、`isolation:'remote'` 禁用（+ 未知 isolation 被静默忽略的纠正）、`model` 无提交校验、VM 同步超时 30000ms | `wf_dace2fc6-966`、`wf_e3b2b123-5f4`（同步超时，failed） |
+| `r3-reverification.md` | R3 基线复验（hello / parallel / pipeline 三组复跑）+ **budget 探针**：`budget` 返回 `{totalIsNull:true, spentIncreased:true, remaining Before/After:"Infinity", guardRounds:0}`（1 agent / 26,211 token / 6,933ms；[第 2 部分 p2-09](#/zh/p2-09) 与 [附录 F](#/zh/app-f) 据此引用） | `wf_2e7d82d6-d13`、`wf_3b5bbac7-e96`、`wf_58225d5c-1e8`、`wf_fd09a6ed-38a`（budget 探针） |
 | `validator-r4.md` | 第三方 `validate-workflow.mjs` 的**实跑行为**：合法脚本 `ok…passes`（exit 0）；违规脚本逐条报错（meta 须首句、禁用非确定性调用、宿主 API 警告、`parallel` 裸 promise 警告，exit 1） | （本机 Node v22.22.0 实跑，非 Workflow Run ID） |
 | `mcp-access-r4.md` | subagent 能用 MCP：默认 `workflow-subagent` 持 0 个 `mcp__` 工具（延迟环境），但经 ToolSearch 按需加载并端到端调用 context7 成功 | `wf_1d4c6a71-56a`（工具自省）、`wf_d8aa0772-ced`（端到端） |
 
@@ -136,7 +137,7 @@
 
 <div class="callout warn">
 
-**严格区分参考与照抄。** 本书所有案例、脚本、数据均为**原创真实产出**（见 [E.3](#e3-真实运行记录10-次完成记录9-个唯一-run-id覆盖的机制)），**未照搬**任何参考材料里的示例。参考解读仅用于建立背景认知；凡与官方类型定义或本书实跑冲突之处，**一律以 [E.1](#e1-官方类型定义api-字段的权威来源)/[E.3](#e3-真实运行记录10-次完成记录9-个唯一-run-id覆盖的机制) 为准**。
+**严格区分参考与照抄。** 本书所有案例、脚本、数据均为**原创真实产出**（见 [E.3](#e3-真实运行记录第一批10-次完成记录9-个唯一-run-id覆盖的机制)），**未照搬**任何参考材料里的示例。参考解读仅用于建立背景认知；凡与官方类型定义或本书实跑冲突之处，**一律以 [E.1](#e1-官方类型定义api-字段的权威来源)/[E.3](#e3-真实运行记录第一批10-次完成记录9-个唯一-run-id覆盖的机制) 为准**。
 
 </div>
 
@@ -170,7 +171,7 @@ flowchart TD
 
 - **API 字段** → [附录 A](#/zh/app-a)，并以你本机 `sdk-tools.d.ts` 为最终依据。
 - **环境/版本** → [E.2](#e2-实测环境与版本行为论断的依据) 的实测快照（实验特性会演进，以本机为准）。
-- **用量/返回值** → 顺着 Run ID 翻 [E.3](#e3-真实运行记录10-次完成记录9-个唯一-run-id覆盖的机制) 指向的 transcript 文件，所有数字原样保留、可复算。
+- **用量/返回值** → 顺着 Run ID 翻 [E.3](#e3-真实运行记录第一批10-次完成记录9-个唯一-run-id覆盖的机制) 指向的 transcript 文件，所有数字原样保留、可复算。
 - **生态精华** → [E.4](#e4-四大社区系统生态借鉴的源码仓库) 的源码仓库 + 第五部。
 
 > 配套阅读：字段速查 [附录 A · API 完整参考](#/zh/app-a)；坑与排错 [附录 B · 陷阱与排错](#/zh/app-b)；最佳实践 [附录 C · 最佳实践清单](#/zh/app-c)；术语 [附录 D · 术语表](#/zh/app-d)。

@@ -114,7 +114,7 @@ The table below lists globals usable in the script body without any `import`. Of
 
 <div class="callout info">
 
-**About `console` / `setTimeout` / `clearTimeout`**: in `wf_59bf3654-183` (a 0-agent introspection workflow), `typeof console === 'object'`, `typeof setTimeout === 'function'`, `typeof clearTimeout === 'function'`, and a `console.log(...)` call succeeded (output goes to the workflow log). For day-to-day progress narration, prefer the official `log()`; `console.log` is more of a debug side-channel. That these three globals **exist** is a verified fact; but third-party claims about a VM sync timeout (specific milliseconds tied to `setTimeout`) are unverified by this book — see [A.14](#a14-third-party-unverified-list-caution).
+**About `console` / `setTimeout` / `clearTimeout`**: in `wf_59bf3654-183` (a 0-agent introspection workflow), `typeof console === 'object'`, `typeof setTimeout === 'function'`, `typeof clearTimeout === 'function'`, and a `console.log(...)` call succeeded (output goes to the workflow log). For day-to-day progress narration, prefer the official `log()`; `console.log` is more of a debug side-channel. That these three globals **exist** is a verified fact [Verified, `wf_59bf3654-183`]. One related verified fact: **the VM imposes a 30000ms timeout on synchronous execution** [Verified, `wf_e3b2b123-5f4`] — a long synchronous loop with no `await` was terminated and the workflow **failed** (measured 30,222ms), verbatim error `Error: Script execution timed out after 30000ms`. It bounds **synchronous** work to catch infinite loops; it is **not** a wall-clock cap (async workflows with `await agent(...)` routinely run for minutes). See the verification-upgrade table at the top of [A.14](#a14-third-party-unverified-list-caution).
 
 </div>
 
@@ -182,12 +182,12 @@ await agent(prompt, {
 
 | Option | Tier | Description |
 |---|---|---|
-| `label` | [Official] | Overrides the display label in `/workflows`; a descriptive label aids search and observation. **Not part of the resume cache key** — changing it doesn't invalidate the cache. |
-| `phase` | [Official] | Explicit grouping; matches `meta.phases.title` exactly. **Always use it inside pipeline/parallel** to avoid racing the global `phase()`. Also **not part of the cache key**. |
-| `schema` | [Official] | JSON Schema; validation is at the tool-call layer, so the model auto-retries until conforming. **Part of the resume cache key**. |
-| `model` | [Official] | Overrides this agent's model; **omitted, it inherits the main loop model** (recommended, unless the user specifies one or the task is simple enough for `'haiku'`). **Part of the resume cache key**. Note it is overridden by `CLAUDE_CODE_SUBAGENT_MODEL` (see A.4). |
-| `isolation: 'worktree'` | [Official] | Runs in a fresh git worktree; **expensive** (~200–500ms startup + disk/agent), use only when parallel agents editing files would collide; auto-cleaned if no changes; **the result returns the path and branch**. **Part of the resume cache key**. |
-| `agentType` | [Official] [Verified validated] | Use a custom subagent type instead of the default; **resolved from the same registry as the Agent tool**; combinable with `schema` (the custom agent's system prompt gets the StructuredOutput instruction appended). **Part of the resume cache key**. |
+| `label` | [Official] | Overrides the display label in `/workflows`; a descriptive label aids search and observation. (Third-party says it is not part of the resume cache key; the exact composition is not independently verified by this book.) |
+| `phase` | [Official] | Explicit grouping; matches `meta.phases.title` exactly. **Always use it inside pipeline/parallel** to avoid racing the global `phase()`. (Third-party says it is not part of the cache key; the exact composition is not independently verified by this book.) |
+| `schema` | [Official] | JSON Schema; validation is at the tool-call layer, so the model auto-retries until conforming. (Third-party says it is part of the resume cache key; the exact composition is not independently verified by this book.) |
+| `model` | [Official] | Overrides this agent's model; **omitted, it inherits the main loop model** (recommended, unless the user specifies one or the task is simple enough for `'haiku'`). Note it is overridden by `CLAUDE_CODE_SUBAGENT_MODEL` (see A.4). (Third-party says it is part of the resume cache key; the exact composition is not independently verified by this book.) |
+| `isolation: 'worktree'` | [Official] | Runs in a fresh git worktree; **expensive** (~200–500ms startup + disk/agent), use only when parallel agents editing files would collide; auto-cleaned if no changes; **the result returns the path and branch**. (Third-party says it is part of the resume cache key; the exact composition is not independently verified by this book.) |
+| `agentType` | [Official] [Verified validated] | Use a custom subagent type instead of the default; **resolved from the same registry as the Agent tool**; combinable with `schema` (the custom agent's system prompt gets the StructuredOutput instruction appended). (Third-party says it is part of the resume cache key; the exact composition is not independently verified by this book.) |
 
 ### `agentType` Is Validated, `model` Is Not: a Real Asymmetry [Verified]
 
@@ -204,7 +204,8 @@ statusline-setup, team-architect, team-qa, team-reviewer, ui-ux-designer
 
 > In other words, misspelling `agentType` is "fail-fast, zero-cost" — very friendly for debugging. (Note: the default subagent's type name is `workflow-subagent`, recorded in each agent's `agent-<id>.meta.json` sidecar.)
 
-- **`opts.model` not validated**: this book **could not verify** this (masked by the `CLAUDE_CODE_SUBAGENT_MODEL` override). Third-party material claims `model` accepts the literal `'inherit'`, and that a typo (like `'hauku'`) does not error at parse time and only fails after passthrough — **(claimed by community third-party material, not independently verified by this book)**. This book's safe recommendation: treat `model` as accepting only values you've confirmed (like `'haiku'`, or omit), and don't rely on a typo being "tolerated."
+- **`opts.model` has no submit/parse-time validation** [Verified, `wf_dace2fc6-966`]: passing a bogus string `'totally-not-a-real-model-xyz'` is **not rejected at submit/parse time**, and the agent runs normally (this session ran Opus because `CLAUDE_CODE_SUBAGENT_MODEL` overrode it). This contrasts with `agentType`: `agentType` is "fail-fast, zero-cost," whereas `model` does not catch invalid values at parse time.
+- But two points this book **could not verify** — the **exact semantics** of the `'inherit'` literal, and the claim that a typo (like `'hauku'`) "passes through and only **fails at the API call**": **(claimed by community third-party material, not independently verified by this book)**. The latter could not be observed because this session's `CLAUDE_CODE_SUBAGENT_MODEL` overrode the per-call model, so the bogus string was never actually sent to an API. This book's safe recommendation: treat `model` as accepting only values you've confirmed (like `'haiku'`, or omit), and don't rely on a typo being "tolerated."
 
 ---
 
@@ -322,7 +323,7 @@ The third-party repo also ships a pre-submit lint (`validate-workflow.mjs`), who
 
 **Verified** (`wf_9c94951d-58c`): the first run of 5 agents = **133,691 tokens / 32,959ms**; re-run **unchanged** with `{ scriptPath, resumeFromRunId }` → same Run ID, identical 5 results, **0 new tokens / 3ms**. That is, an unchanged resume is a "100% cache hit" at near-zero cost.
 
-**What the cache key is made of**: the cache key is based on each `agent()`'s `(prompt, opts)`; within it, `label` / `phase` are cosmetic and **not part of the cache key** — changing them doesn't invalidate the cache. As for "the cache key being exactly the combination of `schema` / `model` / `isolation` / `agentType`" — **(claimed by community third-party material, the exact composition not independently verified by this book)**; what this book did verify is "changing `label` / `phase` doesn't break the cache, changing `prompt` does."
+**What the cache key is made of**: the **only thing this book verified** is "re-running with the same script + same args = a 100% cache hit / 0 new tokens" (`wf_9c94951d-58c`, above). As for the cache key's **exact field composition** — "`schema` / `model` / `isolation` / `agentType` are in the key, `label` / `phase` are not" — **(claimed by community third-party material, not independently verified by this book)**: this book only tested "same script + same args = 100% hit," and did not isolate which fields are in the key one by one. See [A.14](#a14-third-party-unverified-list-caution).
 
 ---
 
@@ -370,7 +371,7 @@ The following claims come from the third-party repo `claude-code-workflow-creato
 >
 > | Once third-party → now verified | Evidence (Run ID / verbatim error) |
 > |---|---|
-> | VM **30000 ms sync timeout** | Run `wf_e3b2b123-5f4`: a long synchronous loop with no `await` was terminated at 30,222 ms, error `Script execution timed out after 30000ms`. Bounds **synchronous** execution only, not a wall-clock cap. |
+> | VM **30000 ms sync timeout** | Run `wf_e3b2b123-5f4`: a long synchronous loop with no `await` was terminated at 30,222 ms, error `Error: Script execution timed out after 30000ms`. Bounds **synchronous** execution only, not a wall-clock cap. |
 > | `isolation: 'remote'` disabled in this build | Run `wf_dace2fc6-966`: throws `agent({isolation:'remote'}) is not available in this build`. **Refinement**: the runtime special-cases only `'worktree'` (do it) and `'remote'` (reject); any other unknown value is **silently ignored**, not an error. |
 > | `meta` reserved keys rejected (submit time) | Static rejection at submit time, e.g. `constructor`, error `reserved key name not allowed in meta: constructor`. (`__proto__` / `prototype` not each tested, but the rejection mechanism is confirmed.) |
 > | `opts.model` has **no submit-time validation** | Run `wf_dace2fc6-966`: `model: 'totally-not-a-real-model-xyz'` does not error at submit and the agent runs. ⚠ This session's `CLAUDE_CODE_SUBAGENT_MODEL` overrode the per-call model, so "fails later at the API call" could not be observed. |
@@ -383,7 +384,7 @@ The following claims come from the third-party repo `claude-code-workflow-creato
 | On budget exhaustion, in-flight agents finish and results are kept, no new agents started | **Unverified.** |
 | schema compiled/validated via **AJV**, "up to two more nudges" when the subagent doesn't call the tool | **Unverified.** This book confirms only "a schema always returns a validated object, retried if it doesn't match" (official + verified); it does **not** assert an exact retry count. |
 | `opts.model`'s `'inherit'` literal **exact semantics** | **Exact semantics unverified.** Note: the "`model` has no submit-time validation" part has been verified-upgraded (see the table at the top of this section); contrast `agentType`, verified validated (A.5). |
-| resume cache key = the **exact combination** of `schema` / `model` / `isolation` / `agentType` | **Exact composition unverified.** What this book verified is "`label` / `phase` are not in the key, `prompt` is" (A.10). |
+| resume cache key = the **exact composition** of `schema` / `model` / `isolation` / `agentType` in the key, `label` / `phase` not in it | **Exact composition unverified.** What this book verified is only "same script + same args = a 100% cache hit" (`wf_9c94951d-58c`, A.10); it did not isolate which fields are in the key one by one. |
 
 ---
 

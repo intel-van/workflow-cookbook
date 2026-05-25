@@ -14,7 +14,7 @@
 
 1. **The public distribution and type definitions** — Claude Code's npm distribution and the tool type definitions it contains;
 2. **Product-behavior analysis** — environment variables, tool receipts, and completion notifications observed in real Claude Code sessions;
-3. **Real runs** — the **10 completed runs (9 unique Run IDs)** we ran ourselves on this machine ([E.3](#e3-real-run-records-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered)), whose usage/return values are recorded verbatim in `assets/transcripts/`.
+3. **Real runs** — the workflows we ran ourselves on this machine. The table in [E.3](#e3-real-run-records-first-batch-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered) is the **first batch of 10 completed runs**; [§E.3.1](#e31-r4-real-runs-reproducing-third-party-claims) adds the R4 batch (runs #11–#19), plus an R3 baseline-reverification group, so the book's real-run corpus totals **19 run records (18 completed + 1 failed on a 30s sync timeout) / 17 unique Run IDs** (a resume reusing an existing Run ID, and submit-time rejections, are not counted as separate IDs). All usage/return values are recorded verbatim in `assets/transcripts/`.
 
 Any script that was **not actually run, serving only as illustration**, is clearly marked "(illustrative, not run)" in the text. Any citation of real data notes the Run ID and provenance. We **do not fabricate** APIs, parameters, or outputs.
 
@@ -56,13 +56,13 @@ The following environment facts were **verified by testing** in real Claude Code
 
 ---
 
-## E.3 Real Run Records (10 Completed Runs, 9 Unique Run IDs, and the Mechanisms Covered)
+## E.3 Real Run Records (First Batch: 10 Completed Runs, 9 Unique Run IDs, and the Mechanisms Covered)
 
-Everywhere the book cites specific usage (`agent_count`/`tool_uses`/`total_tokens`/`duration_ms`) or return values, it comes from the following **10 completed runs** — corresponding to **9 unique Run IDs** (run #4 reuses run #1's Run ID via resume, not counted as a separate ID) — **actually run on this machine.** The raw records are kept in the repository's `assets/transcripts/`, with all numbers unmodified.
+The table below is this book's **first batch** of real runs — **10 completed runs**, corresponding to **9 unique Run IDs** (run #4 reuses run #1's Run ID via resume, not counted as a separate ID), all **actually run on this machine.** The full real-run corpus goes beyond this batch: it also includes the R4 batch (runs #11–#19) in [§E.3.1](#e31-r4-real-runs-reproducing-third-party-claims) and an R3 baseline-reverification group, totaling **19 run records (18 completed + 1 failed on a 30s sync timeout) / 17 unique Run IDs** across the book. The raw records are all kept in the repository's `assets/transcripts/`, with all numbers unmodified.
 
 ![Claude Code /workflows panel: 10 completed workflows in this session](assets/images/workflows-panel.png)
 
-> **Evidence screenshot**: a live capture of Claude Code's built-in `/workflows` panel — **10 completed** runs in this session, each line showing agent count / tokens / duration, matching the table below one-for-one. Note `hello-workflow` appears twice: once as a script run (~26k tokens / 10s), once at `0s` — a `resumeFromRunId` **cache hit** (0 tokens, corroborating [Chapter 22 · Resume & Caching](#/en/p4-22)).
+> **Evidence screenshot**: a live capture of Claude Code's built-in `/workflows` panel — the screenshot shows **10 completed** runs in this session (i.e. this E.3 batch), each line showing agent count / tokens / duration, matching the table below one-for-one. Note `hello-workflow` appears twice: once as a script run (~26k tokens / 10s), once at `0s` — a `resumeFromRunId` **cache hit** (0 tokens, corroborating [Chapter 22 · Resume & Caching](#/en/p4-22)). The book's real corpus is **not limited to this screenshot** — it also includes the R3/R4 transcript records (see [§E.3.1](#e31-r4-real-runs-reproducing-third-party-claims)), totaling **19 records / 17 unique Run IDs**.
 
 | # | Workflow | Run ID | Task ID | Mechanisms covered | Key real data | Record file |
 |---|---|---|---|---|---|---|
@@ -102,8 +102,9 @@ The table above (#1–#10) is this book's first batch of real runs. The **R4 rou
 | Record file | Mechanisms covered | Key Run IDs |
 |---|---|---|
 | `sandbox-r4.md` | The determinism **dual-layer ban** (literal rejected at submit + aliased thrown at runtime); injected globals (`console`/`setTimeout`/`log`/`budget`); `args` passed through unchanged (object stays object); host APIs (`require`/`process`/`fetch`) absent; `CLAUDE_CODE_SUBAGENT_MODEL` overriding the per-call model | `wf_59bf3654-183` (sandbox introspection, 0 agents), `wf_9c94951d-58c` (model resolution, 5 agents) |
-| `api-facts-r4.md` | `agentType` validated (an unknown value throws at 0 tokens and lists available agents) vs `model` not validated; resume = 100% cache hit (0 tokens); nested `workflow()` one-level cap + args passthrough | `wf_a222f20f-0f5`, `wf_9c94951d-58c` (resume), `wf_2b04881f-6a9` |
+| `api-facts-r4.md` | `agentType` validated (an unknown value throws at 0 tokens and lists available agents); resume = 100% cache hit (0 tokens); nested `workflow()` one-level cap + args passthrough | `wf_a222f20f-0f5`, `wf_9c94951d-58c` (resume), `wf_2b04881f-6a9` |
 | `repo-claims-r4.md` | Testing the third-party repo's claims item by item: meta reserved keys rejected, `isolation:'remote'` disabled (+ the correction that an unknown isolation is silently ignored), `model` not validated at submit, the 30000ms VM sync timeout | `wf_dace2fc6-966`, `wf_e3b2b123-5f4` (sync timeout, failed) |
+| `r3-reverification.md` | R3 baseline reverification (re-running the hello / parallel / pipeline trio) + the **budget probe**: `budget` returns `{totalIsNull:true, spentIncreased:true, remaining Before/After:"Infinity", guardRounds:0}` (1 agent / 26,211 tokens / 6,933ms; cited by [Part 2 · p2-09](#/en/p2-09) and [Appendix F](#/en/app-f)) | `wf_2e7d82d6-d13`, `wf_3b5bbac7-e96`, `wf_58225d5c-1e8`, `wf_fd09a6ed-38a` (budget probe) |
 | `validator-r4.md` | The **real-run behavior** of the third-party `validate-workflow.mjs`: a valid script `ok…passes` (exit 0); a broken script erroring item by item (meta must be first, banned nondeterministic calls, host-API warning, `parallel` bare-promise warning, exit 1) | (run on this machine with Node v22.22.0, not a Workflow Run ID) |
 | `mcp-access-r4.md` | A subagent can use MCP: the default `workflow-subagent` holds 0 `mcp__` tools (deferred environment), but loads on demand via ToolSearch and calls context7 end-to-end successfully | `wf_1d4c6a71-56a` (tool introspection), `wf_d8aa0772-ced` (end-to-end) |
 
@@ -136,7 +137,7 @@ The following third-party readings served as **background reference** and **pers
 
 <div class="callout warn">
 
-**Strictly distinguish reference from copying.** All of this book's cases, scripts, and data are **original, real output** (see [E.3](#e3-real-run-records-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered)), with **nothing copied** from any reference material's examples. Reference readings serve only to build background understanding; wherever they conflict with the official type definitions or this book's real runs, **defer to [E.1](#e1-official-type-definitions-the-authoritative-source-for-api-fields)/[E.3](#e3-real-run-records-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered).**
+**Strictly distinguish reference from copying.** All of this book's cases, scripts, and data are **original, real output** (see [E.3](#e3-real-run-records-first-batch-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered)), with **nothing copied** from any reference material's examples. Reference readings serve only to build background understanding; wherever they conflict with the official type definitions or this book's real runs, **defer to [E.1](#e1-official-type-definitions-the-authoritative-source-for-api-fields)/[E.3](#e3-real-run-records-first-batch-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered).**
 
 </div>
 
@@ -170,7 +171,7 @@ flowchart TD
 
 - **API fields** → [Appendix A](#/en/app-a), with your local `sdk-tools.d.ts` as the final authority.
 - **Environment/version** → [E.2](#e2-tested-environment-and-version-the-basis-for-behavioral-claims)'s tested snapshot (experimental features evolve, defer to local).
-- **Usage/return values** → follow the Run ID to the transcript file pointed to by [E.3](#e3-real-run-records-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered); all numbers are kept verbatim and recomputable.
+- **Usage/return values** → follow the Run ID to the transcript file pointed to by [E.3](#e3-real-run-records-first-batch-10-completed-runs-9-unique-run-ids-and-the-mechanisms-covered); all numbers are kept verbatim and recomputable.
 - **Ecosystem gems** → [E.4](#e4-the-four-community-systems-the-source-repositories-for-ecosystem-borrowing)'s source repositories + Part V.
 
 > Companion reading: field quick reference [Appendix A · Full API Reference](#/en/app-a); pitfalls and troubleshooting [Appendix B · Pitfalls & Troubleshooting](#/en/app-b); best practices [Appendix C · Best Practices](#/en/app-c); terms [Appendix D · Glossary](#/en/app-d).
