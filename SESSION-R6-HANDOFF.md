@@ -20,7 +20,10 @@ R6 是一轮**全方位核实 + 打磨**：前端 9 项 dogfood 修复（含 SRI
 | `e38578a` | fix: Phase A 前端打磨 | `index.html`（`scroll-padding-top` 64/80px、`refreshFades()`+resize、`.code-lang` 截断守卫、`doCopy` 焦点还原、`.code-lang` title）、`frontend-review-r6.md`(新) | `assets/transcripts/frontend-review-r6.md` |
 | `81d4af6` | feat: Phase B 重跑 3 工作流 + 修 review-spa dogfood 发现 | `index.html`（9 项修复见下）、`examples-r6.md`(新) | `assets/transcripts/examples-r6.md` |
 | `6fe4382` | fix: Phase C 全量 36 章普查 + 并入 R5/R6 真跑 | 5 处保守修复（`p1-02`/`p2-09`/`app-e` en、`p4-21`/`p4-22` zh+en）、`_grounding.md §C2`、`p6-29` zh+en R6 复跑说明 | 6 个普查 agent 报告 + `_grounding.md` |
-| （本提交）| chore: Phase D 收尾 | `README.md`/`README.en.md`（真跑数 20→23 + 软化绝对化表述）、`index.html`（首页 stat 10+→20+）、`SESSION-R6-HANDOFF.md`(新)、`.gitignore` | 本文件 / `_grounding.md §C2` |
+| `8c4ce66` | chore: Phase D 收尾 | `README.md`/`README.en.md`（真跑数 20→23 + 软化绝对化表述）、`index.html`（首页 stat 10+→20+）、`SESSION-R6-HANDOFF.md`(新)、`.gitignore` | 本文件 / `_grounding.md §C2` |
+| （本提交）| feat: Phase E（用户「完成所有值得做的」） | `index.html`（mermaid 逐图可访问名、语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP）、`app-b`/`app-c`×en/zh（E2 边界项）、`examples-r6.md §5` | review-spa 复验 `wf_f1b6bf8b-2f4`（14→10，9 修确认消失）+ Playwright |
+
+> **Phase E（二轮，应用户「完成所有下一步值得做的」）**：① 真修 mermaid a11y——从图真实标签自动派生逐图可访问名（非手写 160 条 prose，避 AI-slop），Playwright 5/5 PASS；② 重跑 review-spa（`wf_f1b6bf8b-2f4`）验证 Phase B 9 修**确认消失**（且 slugify/SRI/innerHTML 被正面确认安全），新出 10 条中再修 3 项（语言正则 `+`/`#`、aria-busy SR 播报、源白名单 CSP 经测 0 拦截），其余为正面确认/固有/可接受/纵深防御（详见 `examples-r6.md §5`）；③ 收掉 sweep 标记的 2 个边界项（app-c C.5 `phases[].model` 未核实澄清、app-b B.1 去 throttling 误归因）。**复验循环已收口**——再跑只会 surface 递减低危项。codex 因 Phase C 卡死二轮未再跑，对抗审查由 review-spa 真跑 + Playwright 承担。
 
 ---
 

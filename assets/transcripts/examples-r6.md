@@ -70,3 +70,24 @@ review-spa 真实审了本书自己的 `index.html`（修复前版本），经**
 - **hljs 高亮生效**：p1-01=101、p2-08=299 个 hljs span。
 - **锚点 + scroll-padding**：第 3 个 h2 id 有意义、`scrollIntoView()` 后 `top≈64.2` 不被顶栏遮挡、**页面重复 id=0**（slugify 改动未破坏既有锚点）。
 - **GitHub 链接**：`ghLink` href = 真实 https 仓库 URL（非 `#`）。
+
+## 5. R6 二轮：mermaid a11y 修复 + review-spa 复验（验证 9 修已消失）
+
+### 5.1 mermaid 逐图可访问名（index.html）
+- 问题（上轮 review-spa finding #13，medium）：所有 mermaid 图共用泛化 `role=img` + aria-label「流程图示（含义见正文描述）」，图内文字对屏幕阅读器不可见。
+- 修法（**非逐图手写**——160 张图手写描述极易沦为 AI 套话；改为从图的**真实渲染标签**自动派生专属名）：渲染后从 `foreignObject`（flowchart htmlLabels）+ `text`（sequence/state 图）两类元素提取真实标签 → 「图示，含：<标签…>。关系见正文。」。
+- ⚠ **首修失效→修正**：初版用 `querySelectorAll('text')` 取到 0 个（误判 `securityLevel:'strict'` 渲为 SVG `<text>`；实测 flowchart 标签在 `foreignObject/span` 里）。Playwright 验证抓出，改 `foreignObject, text` 双路后复验 **5/5 PASS**：zh/en 各 80 张图泛化占位清零、均含真实标签、sequence 图 `text` 回退生效、0 console 错误。
+
+### 5.2 review-spa 复验真跑（验证修复）
+- Run ID `wf_f1b6bf8b-2f4`：16 agent / 752,345 token / 341,389ms，**确认 10 条**（上轮 14 → 10）。
+- **9 个 Phase B 修复确认消失**：重跑不再报 slugify 碰撞 / SRI 缺失 / decodeURIComponent / renderToc 等；反而 #2 专门 stress-test 确认 **slugify 重写正确、原型名安全、0 重复 id**，#3 确认 **4 脚本已带 SRI**，#6 确认 **mermaid/highlight innerHTML 安全**。这是对 Phase B 修复的强验证。
+- 新出 10 条处置：
+  - **修 3 项**：#1 语言正则丢 `+`/`#`（c++/c#/f# 标签+高亮错）→ 正则改 `[\w+#-]`；#10 章节加载无 SR 播报（medium a11y）→ `#live` 播报「加载中」；#3 无 CSP（medium sec）→ 加源白名单 CSP（DOMPurify+SRI 之上的纵深防御；`'unsafe-inline'` 因单文件内联脚本必需、GitHub Pages 无法用 nonce；Playwright 实测 **0 条 CSP 拦截**）。
+  - **正面确认（无需改）**：#2 slugify/router/anchor 正确、#6 innerHTML sink 安全。
+  - **可接受/固有/已缓解（记录不改）**：#4 `ADD_ATTR:['target']`——已由 enhance() 对任意 `target=_blank` 兜底加 `rel=noopener`（Phase B），安全；#5 `docs/*.md` 信任边界——markdown 即内容、DOMPurify 兜底，属固有；#7 语言切换 aria-pressed in `role=group`——可操作、改 radiogroup 需方向键交互、收益低（同 Phase B 决定）；#8 `pre`/`table` `tabindex=0` 增加 tab stop——是 WCAG 2.1.1「可滚动区域可键盘聚焦」的推荐做法、属可接受权衡。
+  - **#9 mermaid 自动 aria-label 偏长/无关系（medium）**：本书的取舍——自动派生给出图的**真实元素**（合规的 WCAG 1.1.1 文本替代），**关系交给相邻正文**（aria-label 明示「关系见正文」）；逐图手写 160 条 prose 是 AI-slop 陷阱，故不做。视为已 honest 缓解、非追求完美。
+
+### 5.3 二轮审查门与收尾
+- 二轮 index.html 改动（mermaid a11y + 语言正则 + aria-busy 播报 + CSP）经 Playwright 复验全 PASS、**0 CSP 拦截**。
+- **审查门**：二轮对抗审查由 **review-spa 真跑**（本书自带的对抗审查配方、经真实 Workflow 工具，`wf_f1b6bf8b-2f4`）+ Playwright 浏览器验证承担；codex 因 Phase C 卡死未再跑（3 处新修复均小且已浏览器验证、主窗口交叉核对）。
+- **复验循环到此为止**：14→10 且修复项清零、新项均为低危/正面确认/可接受/纵深防御，再跑只会 surface 递减的低危项。

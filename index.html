@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>织经 · Workflow Cookbook — Claude Code 多 Agent 编排实战手册</title>
 <meta name="description" content="织经 · Workflow Cookbook — 深入浅出讲透 Claude Code 的 CLAUDE_CODE_WORKFLOWS 特性：用 JavaScript 脚本确定性编排多 Agent。A hands-on guide to multi-agent orchestration in Claude Code." />
+<!-- Defense-in-depth behind DOMPurify+SRI: source allowlist for scripts/styles/fonts/fetch. 'unsafe-inline' is required for this single-file SPA's inline <script>/<style> (GitHub Pages can't set nonces), so this constrains resource ORIGINS rather than blocking inline injection (that is DOMPurify's job). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; object-src 'none'" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FBFAF5'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23F05C00'/%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -477,6 +479,7 @@ async function renderChapter(id, my){
     return;
   }
   content.setAttribute('aria-busy','true');
+  $('#live').textContent = t('loading');   // announce loading state to screen readers (the loaded chapter is then announced by h1 focus)
   content.innerHTML='<div class="loading"><span class="spin" aria-hidden="true"></span>'+t('loading')+'</div>';
   $('#crumb').innerHTML = esc(ch.part.label[S.lang])+' &nbsp;/&nbsp; <b>'+esc(ch.title[S.lang])+'</b>';
   document.title = ch.title[S.lang]+' · '+(S.lang==='zh'?'织经':'Loom');
@@ -561,14 +564,27 @@ function enhance(){
         const fig = document.createElement('figure'); fig.className='mermaid-fig'; fig.setAttribute('role','img'); fig.setAttribute('aria-label', S.lang==='zh'?'流程图示（含义见正文描述）':'Diagram (see the surrounding text for its meaning)');
         const src = code.textContent;
         pre.parentNode.replaceChild(fig, pre);
-        mm.render('mmd-'+(mmdSeq++), src).then(({svg})=>{ fig.innerHTML = svg; }).catch(()=>{ fig.innerHTML = '<pre style="white-space:pre-wrap">'+esc(src)+'</pre>'; });
+        mm.render('mmd-'+(mmdSeq++), src).then(({svg})=>{
+          fig.innerHTML = svg;
+          // give each diagram a SPECIFIC accessible name from its own rendered labels, not a generic
+          // placeholder. Flowcharts render labels into <foreignObject> (htmlLabels); sequence/state
+          // diagrams use SVG <text> — collect both, one clean label per element.
+          try{
+            const seen2=new Set(), labels=[];
+            fig.querySelectorAll('foreignObject, text').forEach(el=>{ const s=el.textContent.replace(/\s+/g,' ').trim(); if(s && !seen2.has(s)){ seen2.add(s); labels.push(s); } });
+            if(labels.length){
+              const list=labels.slice(0,24).join(S.lang==='zh'?'、':', ')+(labels.length>24?'…':'');
+              fig.setAttribute('aria-label', S.lang==='zh' ? '图示，含：'+list+'。关系见正文。' : 'Diagram, containing: '+list+'. See the surrounding text for relationships.');
+            }
+          }catch(e){}
+        }).catch(()=>{ fig.innerHTML = '<pre style="white-space:pre-wrap">'+esc(src)+'</pre>'; });
       });
     }).catch(()=>{});
   }
   // code cards
   $$('pre code', root).forEach(code=>{
     if(code.dataset.hl) return;
-    let lang = (code.className.match(/language-([\w-]+)/)||[])[1] || 'text';
+    let lang = (code.className.match(/language-([\w+#-]+)/)||[])[1] || 'text';   // keep + and # so c++/c#/f# label and highlight correctly
     if(lang==='mermaid') return;
     code.dataset.hl='1';
     try{ if(window.hljs && hljs.getLanguage(lang)){ code.innerHTML = hljs.highlight(code.textContent,{language:lang,ignoreIllegals:true}).value; } }catch(e){}

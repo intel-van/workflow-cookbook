@@ -97,7 +97,7 @@
 
 - [ ] **Use `model: 'haiku'` for simple/mechanical subtasks.**
   - **Why**: omitting `model` inherits the main loop model (usually a strong model); tasks like classification, extraction, formatting do fine with a light model, saving tokens and time.
-  - **How**: `agent(prompt, { model: 'haiku' })`, or mark `model` on a phase in `meta.phases`. See [Chapter 6](#/en/p2-06), [Chapter 21 · Dynamic Budget & Scaling](#/en/p4-21).
+  - **How**: what actually sets the model is `opts.model` in `agent(prompt, { model: 'haiku' })`; `meta.phases[].model`'s runtime effect is not independently verified by this book — treat it as a display label, don't rely on it alone. See [Chapter 6](#/en/p2-06), [Chapter 21 · Dynamic Budget & Scaling](#/en/p4-21).
 
 - [ ] **Respect the concurrency limit; don't expect infinite parallelism.**
   - **Why**: a workflow runs `min(16, CPU cores−2)` agents at once, the excess queues; the agent total hard cap per workflow is **1000**.

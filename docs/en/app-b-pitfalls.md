@@ -14,7 +14,7 @@ Scan it first. Each row links to the detailed section below.
 |---|---|---|---|
 | 1 | The tool returns `error` directly, the workflow never ran | `meta` isn't a pure literal / the script's first line isn't `export const meta` | [B.2](#b2-meta-rejected-for-not-being-a-pure-literal) |
 | 2 | Returns an `error` field indicating a syntax/parse failure | The script body has a syntax error, caught by the pre-launch static check | [B.3](#b3-a-syntax-error-lands-in-the-error-field) |
-| 3 | Concurrency "doesn't take effect," time ≈ serial total, throttling/error-gathering fail | Passed `parallel()` an array of Promises rather than functions | [B.4](#b4-parallel-passed-promises-instead-of-thunks) |
+| 3 | Concurrency "doesn't take effect," time ≈ serial total, async-failure gathering is lost | Passed `parallel()` an array of Promises rather than functions | [B.4](#b4-parallel-passed-promises-instead-of-thunks) |
 | 4 | The runtime throws, indicating a forbidden API | The script used `Date.now()` / `Math.random()` / arg-less `new Date()` | [B.5](#b5-datenow-mathrandom-throw) |
 | 5 | The workflow keeps dispatching agents, tokens spike until hitting the cap | A dynamic loop has no `budget.total &&` guard | [B.6](#b6-an-infinite-loop-without-a-budget-guard) |
 | 6 | On resume, a step that should be cached re-executed (cost tokens) | The script was changed / cross-session / didn't stop the previous run first | [B.7](#b7-resume-didnt-hit-the-cache) |
@@ -98,7 +98,7 @@ log(`reviewing target: ${args.target}`)   // dynamic info goes here
 
 <div class="callout warn">
 
-**Symptom**: several agents that should run concurrently behave serially — the total time approaches the sum of the agents rather than "the slowest one"; the concurrency-limit throttling and async-failure gathering (async reject / agent error becoming `null`) also don't work.
+**Symptom**: several agents that should run concurrently behave serially — the total time approaches the sum of the agents rather than "the slowest one"; and `parallel()`'s async-failure gathering (async reject / agent error becoming `null`) is lost.
 
 </div>
 
