@@ -317,10 +317,10 @@ Not every `agent()` needs a schema. `feedback-themes`'s summary agents **deliber
 
 ## 27.6 Validate: Run a Lint Pass Before Submitting
 
-Once the script is written and before the real run, run a static check with the third-party validator `scripts/validate-workflow.mjs`. It catches the problems that would cause **submit-time rejection or runtime crashes** — "is meta a pure literal," "is `Date.now()`/`Math.random()` used," "is a host API misused" — locally and early.
+Once the script is written and before the real run, run a static check with the third-party validator `validate-workflow.mjs`. It catches the problems that would cause **submit-time rejection or runtime crashes** — "is meta a pure literal," "is `Date.now()`/`Math.random()` used," "is a host API misused" — locally and early.
 
 ```bash
-  node scripts/validate-workflow.mjs assets/examples/review-spa.js
+  node validate-workflow.mjs assets/examples/review-spa.js
   # valid script: ok ... passes
 ```
 

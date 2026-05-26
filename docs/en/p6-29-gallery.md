@@ -138,7 +138,7 @@ flowchart TD
 
 ### Pattern
 
-Scan a target round by round for symbols that are "defined but never referenced anywhere in the file," **stopping only after several empty rounds in a row.** This is the loop-until-dry shape (Chapter 16): use a `while` loop to keep dispatching an agent until it's "dry" (consecutive empty rounds) — because confirming one symbol dead may make another one obviously removable too, so you can't call it after a single round.
+Scan a target round by round for symbols that are "defined but never referenced anywhere in the file," **stopping only after several empty rounds in a row.** This is the loop-until-dry shape (Chapter 18): use a `while` loop to keep dispatching an agent until it's "dry" (consecutive empty rounds) — because confirming one symbol dead may make another one obviously removable too, so you can't call it after a single round.
 
 The real target is again `index.html` (the SPA's inline vanilla JS).
 

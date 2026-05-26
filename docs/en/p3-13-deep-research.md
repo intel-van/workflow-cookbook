@@ -14,7 +14,7 @@ Toss a question straight at a single agent to "look up" and you almost inevitabl
 
 Stack these together and you get **"plausible but wrong" claims** — confident phrasing that doesn't survive a check. This is exactly the most dangerous thing about LLM retrieval: it's not "doesn't know," it's "confidently wrong."
 
-Deep research's four-stage orchestration takes these three ailments apart one by one:
+Deep research's three-stage orchestration takes these three ailments apart one by one:
 
 ```mermaid
 flowchart LR

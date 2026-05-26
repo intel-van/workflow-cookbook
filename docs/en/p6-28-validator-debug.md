@@ -68,7 +68,7 @@ Keep **ERROR** and **warning** straight: **ERRORs set the exit code to 1** (shou
 Feed it a workflow that genuinely runs (the earlier model-resolution test script):
 
 ```bash
-  $ node scripts/validate-workflow.mjs <…>/model-resolution-test-wf_9c94951d-58c.js
+  $ node validate-workflow.mjs <…>/model-resolution-test-wf_9c94951d-58c.js
   ok — model-resolution-test-wf_9c94951d-58c.js passes (1853 bytes)
   (exit=0)
 ```

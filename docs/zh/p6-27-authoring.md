@@ -316,10 +316,10 @@ flowchart LR
 
 ## 27.6 校验：提交前先过一遍 lint
 
-脚本写完、真跑之前，先拿第三方校验器 `scripts/validate-workflow.mjs` 过一遍静态检查。它能把「meta 是不是纯字面量」「有没有用 `Date.now()`/`Math.random()`」「有没有误用宿主 API」这些会导致**提交期被拒、或运行时崩掉**的毛病，提前在本地揪出来。
+脚本写完、真跑之前，先拿第三方校验器 `validate-workflow.mjs` 过一遍静态检查。它能把「meta 是不是纯字面量」「有没有用 `Date.now()`/`Math.random()`」「有没有误用宿主 API」这些会导致**提交期被拒、或运行时崩掉**的毛病，提前在本地揪出来。
 
 ```bash
-  node scripts/validate-workflow.mjs assets/examples/review-spa.js
+  node validate-workflow.mjs assets/examples/review-spa.js
   # 合法脚本：ok ... passes
 ```
 

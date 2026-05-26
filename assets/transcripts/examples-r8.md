@@ -1,6 +1,6 @@
 # R8 Phase 0 — 真值锚定与实测证据
 
-> 2026-05-26。本轮（R8）开工前的地基核实，**除 §6（zenn 文章核实，经子代理 grok-search 抓取，属第三方侦察）外，§1–§5、§7 均为主窗口亲跑 Workflow 工具/本机环境的实测**，非第三方说法。结论可回溯到 ① 实测会话环境变量 ② 探针 Run ID（`wf_72e98fa5-019`、`wf_28a5d455-300`、`wf_4ffde230-535` 及其两次 resume、被拒的 guard-scan 探针）。承 [`examples-r7.md`](examples-r7.md)。
+> 2026-05-26。本轮（R8）开工前的地基核实，**除 §6（zenn 文章核实，经子代理 grok-search 抓取，属第三方侦察）外，§1–§5、§7 均为主窗口亲跑 Workflow 工具/本机环境的实测**，非第三方说法。结论可回溯到 ① 实测会话环境变量 ② 探针 Run ID（`wf_72e98fa5-019`、`wf_28a5d455-300`、`wf_4ffde230-535` 及其两次 resume、被拒的 guard-scan 探针）。
 
 **准确定位本轮贡献**（对照 `_grounding.md` 后自我修正，避免夸大）：真正的 §5 **实测转正只有 1 条**——resume 缓存键的 `label`/`prompt` 边界（grounding line 38/56 此前明确标「未逐一验证各字段是否入键」）。其余多为**对已 grounding 事实在本会话（v2.1.150）的再确认**：budget(null/Infinity/序列化坑)、agentType+schema 组合、`model:'inherit'` 被接受（R4 line 34 已观测其能跑）、运行时内置 workflow 清单（R4 `wf_2b04881f-6a9` 已记）。另有 1 条**粒度锐化**：确定性守卫的静态扫描连字符串里的 token 都拒（R4 已记「字面量提交即拒」，本轮补「字符串内提及也被拒」）。
 

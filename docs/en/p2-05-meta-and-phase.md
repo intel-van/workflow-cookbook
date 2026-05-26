@@ -44,7 +44,7 @@ This constraint is explicitly recorded in `_grounding.md`'s "hard constraints" s
 
 > `meta` must be a pure literal (statically read by the runtime before execution).
 >
-> — *Grounding Facts and Writing Conventions*, Section D · Hard Constraints
+> — *Grounding Facts and Writing Conventions*, Section B · Hard Constraints
 
 ---
 

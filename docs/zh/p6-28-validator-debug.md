@@ -68,7 +68,7 @@ flowchart TD
 拿一个真能跑的工作流（前面那个模型解析测试脚本）喂进去：
 
 ```bash
-  $ node scripts/validate-workflow.mjs <…>/model-resolution-test-wf_9c94951d-58c.js
+  $ node validate-workflow.mjs <…>/model-resolution-test-wf_9c94951d-58c.js
   ok — model-resolution-test-wf_9c94951d-58c.js passes (1853 bytes)
   (exit=0)
 ```
