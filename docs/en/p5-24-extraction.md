@@ -927,7 +927,7 @@ Why does this routine keep showing up? Because a single agent has two flaws you 
 
 </div>
 
-> Continue reading: land this routine in each dedicated chapter — [Chapter 10 Sharded Code Review](#/en/p3-10-sharded-review), [Chapter 13 Deep Research](#/en/p3-13-deep-research), [Chapter 14 Judge Panel](#/en/p3-14-judge-panel), [Chapter 15 Bug Hunter](#/en/p3-15-bug-hunter), [Chapter 17 Adversarial Verification](#/en/p4-17-adversarial).
+> Continue reading: land this routine in each dedicated chapter — [Chapter 10 Sharded Code Review](#/en/p3-10), [Chapter 13 Deep Research](#/en/p3-13), [Chapter 14 Judge Panel](#/en/p3-14), [Chapter 15 Bug Hunter](#/en/p3-15), [Chapter 17 Adversarial Verification](#/en/p4-17).
 
 ---
 
