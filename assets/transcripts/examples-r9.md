@@ -27,6 +27,14 @@
   - → 脚本里 `agent({isolation:'worktree'})` 的返回值 = agent 常规输出（无 schema 即文本 `string`），**不是 `{path,branch}` 对象**。所以「返回 path/branch」是 Agent 工具定义在**工具结果信封层**的说法，不经脚本 `agent()` 返回值暴露。
   - 隔离实证：主工作树零泄漏（`git status` 只剩未跟踪 `PROMOTION.md`）；worktree 落 `.claude/worktrees/wf_17307da4-707-1`、分支 `worktree-wf_17307da4-707-1`、初始 `locked`。探针后已 `git worktree remove --force` + `branch -D` + `prune` 清理干净。
 
+## 探针 4 — 「验证运行时」最小食谱（`wf_580909ca-b32`，R9 Phase B）
+
+- agent_count=0 ｜ total_tokens=0 ｜ tool_uses=0 ｜ duration_ms=4
+- 脚本要点：最小 `check-runtime`——只有 `meta`（含 `phases:[{title:'Check'}]`）+ `phase('Check')` + `log(...)` + 顶层 `return {...}`，不调任何 `agent()`。
+- 结果：返回 `{ok:true, budgetTotal:null, budgetTotalIsNull:true, remaining:"Infinity", argsIsUndefined:true}`。
+  - → 坐实「0-agent 工作流真能跑、真 0 token（4ms）」「`budget.total=null`、`budget.remaining()=Infinity`（无 +Nk 指令时）」「未传 args 时 `typeof args==='undefined'`」「顶层 `return` 与 `log()` 均正常」。
+  - → 作为 p1-01 §1.5「一眼确认到底能不能用」食谱的实测背书：读者跑通它即说明运行时齐活；工具若不在环境里（版本太老/没开标志）则根本发不出这一步。
+
 ## 落点（R9 Phase A 已据此改文档）
 
 - **#1**：`app-a-api.md` 的 `isolation:'worktree'` 行（zh/en）—— 区分「信封层 path/branch」vs「脚本里 agent() 返回值」+ 实测 worktree 命名规律。
@@ -34,3 +42,5 @@
 - **#4**：`app-a-api.md` §A.6（zh/en）—— 「第一阶段 prevResult===item」加 Run ID 背书。
 - **#2**：本文件 + `_grounding.md` 记当前 build 再确认；正文 p2-08 §8.8 本就正确，不改（避免 churn）。
 - **#5**：`p4-20` §20.1（zh/en）—— 补「子工作流在 `/workflows` 显示为 `▸ name` 分组」（官方工具描述）。
+
+**Phase B 落点（探针 4）**：`p1-01` §1.5（zh/en）—— 触发门控成节强化：补「版本前提」（实测 v2.1.150；社区报告约 2.1.148+，确切起始版本未独立核实）+「0-token 验证运行时」食谱（`wf_580909ca-b32` 背书）。

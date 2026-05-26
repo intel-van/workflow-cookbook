@@ -201,7 +201,7 @@ There are two paths:
 1. **The keyword `ultrawork`.** Drop `ultrawork` into your message and Claude Code gets a system prompt telling it "the user has chosen multi-agent orchestration," which clears it to call the Workflow tool. That's also where the community nickname "ultrawork" comes from.
 2. **Calling the Workflow tool directly.** Say you explicitly ask to "run a workflow / orchestrate with multiple agents / fan out agents," or you use a skill or slash command that triggers it under the hood, or you ask to run a named workflow by name.
 
-Either way, the prerequisite is the same: the feature has to be **explicitly turned on.**
+Either way, you have to clear two gates first: the feature has to be **explicitly turned on**, and your Claude Code has to be **new enough**. We'll cover the one people forget most often first — the switch.
 
 ### The feature flag: `CLAUDE_CODE_WORKFLOWS`
 
@@ -228,6 +228,40 @@ CLAUDE_CODE_WORKFLOWS=1 claude
 **Why off by default?** Because a single Workflow can fan out dozens of subagents and burn a lot of tokens. Keeping it behind a flag is a "you'd better know what you're doing" guardrail. It's the same discipline the tool definition keeps stressing: **only call Workflow when the user has explicitly chosen multi-agent orchestration** — don't launch it on your own just because "this task looks like it might run faster in parallel."
 
 </div>
+
+### Version prerequisite: Claude Code has to be new enough
+
+Workflow was added to Claude Code fairly late; older versions simply don't have it. The environment this book was tested on is **v2.1.150**, where the tool is fully available. Per community and user reports it started showing up around **2.1.148** — but **this book hasn't independently verified the exact starting version**, so treat that as a rough lower bound. Check your version:
+
+```bash
+claude --version
+```
+
+### Confirm "does it actually work" at a glance: a 0-token probe
+
+The version number is only a hint — **the real test is whether the tool can actually be invoked.** Rather than fuss over version numbers, just run a minimal workflow to probe it: it dispatches no agents and burns no tokens, and if it returns cleanly your runtime is good to go:
+
+```javascript
+export const meta = {
+  name: 'check-runtime',
+  description: 'Verify the Workflow runtime is available (0 agents, 0 tokens)',
+  phases: [{ title: 'Check' }],
+}
+
+phase('Check')
+log('Workflow runtime is live — 0 agents, 0 tokens')
+
+// 0 agents, 0 tokens: just read back the runtime state and return
+return {
+  ok: true,
+  budgetTotal: budget.total,                    // = null when no +Nk budget directive is given
+  budgetTotalIsNull: budget.total === null,     // confirms it's literally null, not just falsy
+  remaining: String(budget.remaining()),        // correspondingly = "Infinity"
+  argsIsUndefined: typeof args === 'undefined', // = true when no args were passed
+}
+```
+
+This book's run (`wf_580909ca-b32`): returns `{ ok: true, budgetTotal: null, budgetTotalIsNull: true, remaining: "Infinity", argsIsUndefined: true }`, at **0 agents / 0 tokens / 4ms** (the comments in the block above are explanatory annotations; strip them and you have the exact script this book ran). If the tool isn't present in your environment at all (version too old, or `CLAUDE_CODE_WORKFLOWS` not set), you won't even be able to issue this step — in which case go back and check the two gates above.
 
 ---
 

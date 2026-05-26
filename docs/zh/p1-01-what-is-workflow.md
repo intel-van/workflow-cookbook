@@ -201,7 +201,7 @@ sequenceDiagram
 1. **关键词 `ultrawork`。** 你的消息里只要带上 `ultrawork`，Claude Code 就会收到一条系统提示，告诉它「用户已经选了多 Agent 编排」，于是它被允许调用 Workflow 工具。社区给这个特性起的外号「ultrawork」也是这么来的。
 2. **直接调用 Workflow 工具。** 比如你明确说「跑一个工作流 / 用多 agent 编排 / 把 agent 扇出去」，或者你用了某个内部会触发它的技能、斜杠命令，又或者你点名要跑某个具名工作流。
 
-不管走哪条路，前提都一样：这个功能得被**显式打开**。
+不管走哪条路，都得先过两道前提：功能被**显式打开**，而且 Claude Code 版本**够新**。先说最常被忘的那道——开关。
 
 ### 功能标志：`CLAUDE_CODE_WORKFLOWS`
 
@@ -228,6 +228,40 @@ CLAUDE_CODE_WORKFLOWS=1 claude
 **为什么默认不开？** 因为一个 Workflow 可能一下扇出几十个 subagent、烧掉一大把 token。拿一个开关把它挡在后面，相当于提醒你「你得清楚自己在干嘛」。工具定义里也反复强调这条纪律：**只有用户明确选了多 Agent 编排，才去调用 Workflow**——别光凭「这任务好像并行一下会更快」就擅自启动。
 
 </div>
+
+### 版本前提：Claude Code 得够新
+
+Workflow 是较晚才加进 Claude Code 的工具，老版本里根本没有。本书的实测环境是 **v2.1.150**，工具完整可用。据社区和用户反馈，大约 **2.1.148** 前后开始提供——但**确切的起始版本本书没有独立核实**，当个大致下限就行。查你当前的版本：
+
+```bash
+claude --version
+```
+
+### 一眼确认「到底能不能用」：一个 0 token 的探针
+
+版本号只是参考，**真正的判据是这工具到底调不调得起来**。与其盯着版本号，不如直接跑一个最小工作流探一下——它不派任何 agent、不烧 token，能正常返回就说明你的运行时齐活了：
+
+```javascript
+export const meta = {
+  name: 'check-runtime',
+  description: 'Verify the Workflow runtime is available (0 agents, 0 tokens)',
+  phases: [{ title: 'Check' }],
+}
+
+phase('Check')
+log('Workflow runtime is live — 0 agents, 0 tokens')
+
+// 0 个 agent、0 token：只读一下运行时状态就返回
+return {
+  ok: true,
+  budgetTotal: budget.total,                    // 没加 +Nk 预算指令时 = null
+  budgetTotalIsNull: budget.total === null,     // 印证它是「真 null」而非 falsy
+  remaining: String(budget.remaining()),        // 对应 = "Infinity"
+  argsIsUndefined: typeof args === 'undefined', // 没传 args 时 = true
+}
+```
+
+本书实测（`wf_580909ca-b32`）：返回 `{ ok: true, budgetTotal: null, budgetTotalIsNull: true, remaining: "Infinity", argsIsUndefined: true }`，**0 agent / 0 token / 4ms**（上面代码块里的注释是为讲解额外加的，去掉注释就是本书实跑的脚本原文）。要是这工具压根没出现在你的环境里（版本太老，或没开 `CLAUDE_CODE_WORKFLOWS`），你根本发不出这一步——那就回头检查上面两道前提。
 
 ---
 
