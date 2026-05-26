@@ -1,18 +1,18 @@
 # Chapter 25 · Building Your Own Workflow Library
 
-> Chapter 24 taught you to **extract** good ideas into a validated Workflow script. But a `.js` file lying in a session directory, used once and discarded, has realized only half its value. This chapter is about how to **settle these scripts into a library** — callable by name, reusable with parameters, version-controlled, regression-tested, and shareable with your team.
+> Chapter 24 taught you to **extract** good ideas into a validated Workflow script. But a `.js` file sitting in a session directory, used once and tossed, has only delivered half its value. This chapter is about how to **settle those scripts into a library** — callable by name, reusable with parameters, version-controlled, regression-tested, and shareable with your team.
 >
-> The technical foundation of all this is the plain fact revealed in Chapter 01: **every time you call, the Workflow script lands to disk as a file.** Since it's a file, it can be named, version-controlled, diffed, and reused. This chapter cashes this fact into a set of engineering practices you can copy directly.
+> The technical bedrock under all of this is the plain fact Chapter 01 spelled out: **every time you call, the Workflow script lands on disk as a file.** Since it's a file, it can be named, version-controlled, diffed, and reused. This chapter cashes that fact in as a set of engineering practices you can copy straight over.
 
 ---
 
 ## 25.1 From "One-off Script" to "Named Workflow"
 
-Recall that sentence from Chapter 01 §1.6:
+Remember that sentence from Chapter 01 §1.6:
 
 > You can file a validated workflow script into `.claude/workflows/` and later reuse it like a named command with `{ name: 'my-workflow' }`.
 
-This is the starting point of a "library." First let's clarify the difference between the three calling forms — they correspond to the three mutually exclusive (by priority) entry fields of `WorkflowInput` (source: `assets/_grounding.md` section B):
+That's the starting point of a "library." First let's sort out the difference between the three calling forms — they map to the three mutually exclusive (by priority) entry fields of `WorkflowInput` (source: `assets/_grounding.md` section B):
 
 | Entry field | Meaning | Applicable stage |
 |---|---|---|
@@ -22,11 +22,11 @@ This is the starting point of a "library." First let's clarify the difference be
 
 <div class="callout info">
 
-**`scriptPath` has the highest priority** (per section B). This means: when you're iterating a script, saving it to disk and re-running repeatedly with `{ scriptPath }` is the smoothest workflow; and once it's stable, moving it into `.claude/workflows/` and calling it with `{ name }` makes it "a named tool in the library." **`name` is for consumers, `scriptPath` is for authors.**
+**`scriptPath` has the highest priority** (per section B). What that means: while you're iterating a script, saving it to disk and re-running it over and over with `{ scriptPath }` is the smoothest path; and once it's stable, moving it into `.claude/workflows/` and calling it with `{ name }` turns it into "a named tool in the library." **`name` is for the people who use it, `scriptPath` is for the person who writes it.**
 
 </div>
 
-The lifecycle of a script growing from "one-off" into a "library member" is like this:
+A script growing from "one-off" into a "library member" runs roughly through this lifecycle:
 
 ```mermaid
 flowchart LR
@@ -37,13 +37,13 @@ flowchart LR
   E -.find something to change.-> B
 ```
 
-The rest of this chapter follows this lifecycle, giving engineering practices station by station.
+The rest of this chapter follows that lifecycle, handing you engineering practices station by station.
 
 ---
 
 ## 25.2 Directory Structure: Organizing `.claude/workflows/`
 
-Named workflows live under the project's (or the user's home) `.claude/workflows/`. When the library is small, flat is fine; when it grows, you need structure. Below is a **suggested** scaffold (not enforced by the runtime, an organizational convention):
+Named workflows live under the project's (or the user's home) `.claude/workflows/`. While the library is small, flat is fine; once it grows, you need some structure. Below is a **suggested** scaffold (the runtime doesn't enforce it — it's just an organizational convention):
 
 ```text
 .claude/
@@ -67,14 +67,14 @@ Named workflows live under the project's (or the user's home) `.claude/workflows
 
 A few organizing principles:
 
-1. **Group by "recipe type," not by project module.** A workflow's reuse value lies in its **pattern** (review / research / loop / fan-out), not in whichever module it happens to handle today. The `two-stage-review.js` under `review/` can review anything tomorrow.
-2. **`_`-prefixed directories are the "informal zone."** `_lib/` holds drafts still being debugged with `scriptPath`, not yet stable; `_fixtures/` holds test inputs. The underscore prefix signals "this isn't a finished product to be called directly with `{ name }`."
-3. **One file, one workflow, filename = `meta.name`.** This way `{ name: 'two-stage-review' }` and the file `two-stage-review.js` map one-to-one — finding the file is finding the workflow.
-4. **`README.md` is the library's table of contents.** Its role to the library is the same as this book's `manifest.json` to the whole book — an index.
+1. **Group by "recipe type," not by project module.** What makes a workflow worth reusing is its **pattern** (review / research / loop / fan-out), not whichever module it happens to handle today. The `two-stage-review.js` under `review/` can review something else tomorrow.
+2. **`_`-prefixed directories are the "informal zone."** `_lib/` holds drafts still being debugged with `scriptPath`, not yet stable; `_fixtures/` holds test inputs. The underscore prefix is telling you "this isn't a finished product to call directly with `{ name }`."
+3. **One file, one workflow, filename = `meta.name`.** That way `{ name: 'two-stage-review' }` and the file `two-stage-review.js` map one-to-one — find the file and you've found the workflow.
+4. **`README.md` is the library's table of contents.** What it is to the library, this book's `manifest.json` is to the whole book — an index.
 
 <div class="callout tip">
 
-**User-level vs project-level.** Workflows placed in the project's `.claude/workflows/` travel with the project (committable to that project's repo, shared by the team); those placed in the user's home `~/.claude/workflows/` travel with you as a person (usable across all projects). **The criterion**: those coupled to a specific project (e.g., "review this repo's PR template") go project-level; general methodologies (e.g., "judge panel," "deep research") go user-level.
+**User-level vs project-level.** Workflows you put in the project's `.claude/workflows/` travel with the project (you can commit them to that project's repo and the team shares them); ones you put in the user's home `~/.claude/workflows/` travel with you as a person (every project can use them). **How to decide**: anything tied to a specific project (say, "review this repo's PR template") goes project-level; general methodologies (say, "judge panel," "deep research") go user-level.
 
 </div>
 
@@ -82,7 +82,7 @@ A few organizing principles:
 
 ## 25.3 Naming Conventions: Make `name` Self-explanatory
 
-The three fields `meta.name`, `meta.description`, `meta.whenToUse` are the library's "public API" — they decide whether a consumer (a human or a caller) can understand at a glance "what this is for, and when to use it." Recall Chapter 01: `meta` is shown in the permission dialog and the workflow list, so these three fields are **human-facing documentation.**
+The three fields `meta.name`, `meta.description`, `meta.whenToUse` are the library's "public API" — whether someone using it (a human or a caller) can tell at a glance "what this is for, and when to use it" comes down entirely to them. Remember Chapter 01: `meta` shows up in the permission dialog and the workflow list, so these three fields are really **documentation written for humans.**
 
 ### name: verb-noun, kebab-case
 
@@ -93,11 +93,11 @@ The three fields `meta.name`, `meta.description`, `meta.whenToUse` are the libra
 | `doStuffWithPRsAndReviewThem` | camelCase + verbose | `pr-multidim-review` |
 | `reviewTheCurrentBranchPullRequest` | Contains words like "current/the" that will go stale | `pr-multidim-review` |
 
-The convention: **`<action>-<object>[-<qualifier>]`, all lowercase kebab-case, no soon-to-be-stale demonstratives (current/this/the).** The filename matches it.
+The convention: **`<action>-<object>[-<qualifier>]`, all lowercase kebab-case, no demonstratives that'll go stale (current/this/the).** The filename matches it.
 
 ### description: one line, stating "what it does + the key constraint"
 
-`description` is shown in the permission dialog; the user relies on it to decide "whether to authorize this fan-out." So it should answer "what this workflow will do, roughly how much commotion." Compare against this book's real scripts' descriptions (all from real-run transcripts):
+`description` shows up in the permission dialog; the user leans on it to decide "whether to authorize this fan-out." So it should answer "what this workflow will do, and roughly how much commotion." Take a look at this book's real scripts' descriptions (all from real-run transcripts):
 
 ```javascript
 // meta.description from real runs (traceable)
@@ -112,7 +112,7 @@ The convention: **`<action>-<object>[-<qualifier>]`, all lowercase kebab-case, n
 
 ### whenToUse: optional, but extremely valuable for a library
 
-`whenToUse` (optional, shown in the workflow list) answers "**when** should I be chosen." Once the library grows, a consumer facing a row of workflows uses `whenToUse` to choose:
+`whenToUse` (optional, shown in the workflow list) answers "**when** should I be chosen." Once the library grows, someone facing a row of workflows leans on `whenToUse` to pick:
 
 ```javascript
 export const meta = {
@@ -125,7 +125,7 @@ export const meta = {
 
 <div class="callout warn">
 
-**`meta` must be a pure literal** (section B hard constraint). So `description`/`whenToUse` **cannot** use template interpolation to concatenate (e.g., `` `Review ${args.target}` ``) — the runtime statically reads `meta` before execution, at which point `args` does not yet exist. Need the description to vary with arguments? Put the varying part in `log()` (runtime output), keep `meta` static. This is an anti-pattern Chapter 26 expands on.
+**`meta` must be a pure literal** (section B hard constraint). So `description`/`whenToUse` **cannot** be stitched together with template interpolation (e.g., `` `Review ${args.target}` ``) — the runtime reads `meta` statically, before execution, and at that point `args` doesn't exist yet. Want the description to vary with arguments? Push the varying part into `log()` (runtime output) and keep `meta` static. This is an anti-pattern Chapter 26 digs into.
 
 </div>
 
@@ -133,11 +133,11 @@ export const meta = {
 
 ## 25.4 Parameterization: Use `args` to Turn a Script into a "Reusable Tool"
 
-A script with a hard-coded target isn't a library member — it's a one-off script. **Parameterization is the watershed between "one-off" and "reusable."** The tool is `args` (section B: "the global `args` exposed to the script"; Chapter 01: "the arguments object passed in by the caller").
+A script with a hard-coded target isn't a library member — it's a one-off script. **The watershed between "one-off" and "reusable" is parameterization.** The tool for the job is `args` (section B: "the global `args` exposed to the script"; Chapter 01: "the arguments object passed in by the caller").
 
 ### From hard-coded to parameterized
 
-Compare two versions of the same "multi-dimension review" workflow:
+Put two versions of the same "multi-dimension review" workflow side by side:
 
 ```javascript
 // ✗ Hard-coded version — can only review index.html, change the target and you must edit the source
@@ -170,7 +170,7 @@ const reviews = await parallel(
 )
 ```
 
-The parameterized version uses `args.dimensions.map(...)` to make **even the number of dimensions configurable** — 3 dimensions or 5, the caller decides, the script doesn't change. To call it:
+The parameterized version uses `args.dimensions.map(...)` to make **even the number of dimensions configurable** — 3 dimensions or 5, the caller decides and the script doesn't budge. To call it:
 
 ```javascript
 // How a consumer uses it
@@ -184,15 +184,15 @@ Workflow({
 
 <div class="callout warn">
 
-**`args` is the only legitimate way around "the ban on `Date.now()`/`Math.random()`."** Both Chapter 01 and section B stress: the script bans `Date.now()` / `Math.random()` / arg-less `new Date()`, because they break replayability and break resume. **Need a timestamp? Pass it in via `args.runDate`; need a random seed? Use `args.seed`.** This way the script is still replayable for "the same args," and regression testing (25.6) holds.
+**`args` is the only legitimate way around "the ban on `Date.now()`/`Math.random()`."** Both Chapter 01 and section B drive it home: the script bans `Date.now()` / `Math.random()` / arg-less `new Date()`, because they break replayability and break resume. **Need a timestamp? Pass it in via `args.runDate`; need a random seed? Use `args.seed`.** That way the script stays replayable for "the same args," and regression testing (25.6) holds up.
 
 </div>
 
-A set of design rules for parameterization:
+A handful of design rules for parameterization:
 
-1. **Give defaults.** `args.dimensions || [...]` — it runs even if the caller doesn't pass it, lowering the barrier to use.
-2. **Write the argument contract into the docs.** State each parameter's type and meaning in three places: a comment at the top of the script, in `whenToUse`, and in `README.md`. `args` has no schema enforcement (it's an arbitrary object), so the docs are the contract.
-3. **Put argument validation at the very front.** If a required argument is missing, `log` + throw as early as possible; don't let it run halfway and crash on `undefined`:
+1. **Give defaults.** `args.dimensions || [...]` — it runs even when the caller passes nothing, which lowers the barrier to use.
+2. **Write the argument contract into the docs.** Spell out each parameter's type and meaning in three places: a comment at the top of the script, in `whenToUse`, and in `README.md`. `args` has no schema enforcement (it's an arbitrary object), so the docs are the contract.
+3. **Put argument validation right up front.** If a required argument is missing, `log` + throw as early as you can; don't let it run halfway and then crash on `undefined`:
 
 ```javascript
 // Argument validation: fail early if a required item is missing, with a clear message
@@ -205,11 +205,11 @@ if (!args || typeof args.target !== 'string') {
 
 ## 25.5 Version Management: A Script Is a File, So Use Git
 
-The biggest dividend of "a script is a file" is that your Workflow library **directly inherits the entire Git toolchain** — diff, blame, PR, tag, rollback, all of it. This is native Workflow's generational advantage over "prompts scattered through a conversation."
+The biggest payoff of "a script is a file" is that your Workflow library **gets the entire Git toolchain for free** — diff, blame, PR, tag, rollback, all of it. This is where native Workflow is a generation ahead of "prompts scattered through a conversation."
 
 ### Put `.claude/workflows/` under version control
 
-Project-level libraries are committed straight into the project repo; for user-level libraries, it's recommended to create a separate `dotfiles`-style repo to manage `~/.claude/workflows/`. Either way, the core practice is the same:
+Project-level libraries go straight into the project repo; for user-level ones, it's worth spinning up a separate `dotfiles`-style repo to manage `~/.claude/workflows/`. Either way, the core practice is the same:
 
 ```bash
 # Routine version management of the library (standard Git, nothing special)
@@ -225,13 +225,13 @@ git blame .claude/workflows/research/deep-research.js
 
 <div class="callout tip">
 
-**Workflow scripts are "deterministic + replayable," which makes their diffs unusually meaningful.** Changing a word in an ordinary prompt has unpredictable effects; whereas changing one `agent()` in a Workflow script, you can know precisely via resume (25.6) that "only this agent and its downstream re-ran." **Codified orchestration, for the first time, makes "a change to the orchestration logic" a reviewable diff.** Treat workflow modifications as code reviews — which is exactly how they should be treated.
+**Workflow scripts are "deterministic + replayable," and that's what makes their diffs unusually meaningful.** Change a word in an ordinary prompt and the effect is anyone's guess; change one `agent()` in a Workflow script and you can know precisely, via resume (25.6), that "only this agent and its downstream re-ran." **Once orchestration is written as code, "a change to the orchestration logic" becomes a reviewable diff for the first time.** Treat workflow changes as code reviews — which is exactly how they deserve to be treated.
 
 </div>
 
 ### Embed lightweight version info in `meta` (optional)
 
-`meta` is a pure literal, but allows arbitrary **literal** fields. If you want to leave a version trace inside the workflow, you can add a **literal** version number (note: it cannot be generated with `Date.now()`):
+`meta` is a pure literal, but it allows arbitrary **literal** fields. If you want to leave a version trace inside the workflow, you can add a **literal** version number (note: it can't be generated with `Date.now()`):
 
 ```javascript
 export const meta = {
@@ -242,39 +242,39 @@ export const meta = {
 }
 ```
 
-A more reliable approach is to **let the Git tag be the version authority**, and not maintain a version number in `meta` redundantly — avoiding a "code version" vs "meta-written version" conflict.
+A more reliable approach is to **let the Git tag be the version authority** and not keep a redundant version number in `meta` — that way you avoid a "code version" vs "meta-written version" clash.
 
 ### Breaking changes: change the name or change the implementation?
 
-When a workflow needs an incompatible argument change, there are two strategies:
+When a workflow needs an argument change that isn't backward-compatible, you've got two strategies:
 
 | Strategy | Approach | Applies when |
 |---|---|---|
 | **Evolve in place** | Change the implementation, mark the version with a Git tag, old callers upgrade | The library is used only by you/a small team, who can upgrade in sync |
 | **New name coexists** | Ship `two-stage-review-v2`, mark the old one deprecated and keep it for a while | The library is depended on by multiple parties who can't be forced to upgrade in sync |
 
-This is the same as a software library's semantic-versioning governance. For a small library, prefer "evolve in place + Git tag," and don't introduce the complexity of a version suffix too early (this itself is also an anti-pattern, see Chapter 26's "designing for requirements that don't exist").
+This is the same story as a software library's semantic-versioning governance. For a small library, lean on "evolve in place + Git tag," and don't reach for the complexity of a version suffix too early (that itself is an anti-pattern too, see Chapter 26's "designing for requirements that don't exist").
 
 ---
 
 ## 25.6 Testing: Use `resumeFromRunId` for Regression
 
-For a library to be reliable, it must be **testable.** Workflow's testability is built on that empirical result from Chapter 22 — this is data this book really ran:
+For a library to be dependable, it has to be **testable.** Workflow's testability rests on that empirical result from Chapter 22 — this is data this book actually ran:
 
-> **Resume cache hit** (real run): for `hello-workflow` (Run ID `wf_dacbd480-d5d`), re-calling with the **unchanged script** + `resumeFromRunId`, a usage comparison of the two runs:
+> **Resume cache hit** (real run): take `hello-workflow` (Run ID `wf_dacbd480-d5d`), re-called with the **unchanged script** + `resumeFromRunId` — here's how the two runs' usage compares:
 >
 > | Run | agent_count | tool_uses | total_tokens | duration_ms |
 > |---|---|---|---|---|
 > | First (real execution) | 1 | 1 | 26,338 | 5,506 |
 > | Resume (cache hit) | 0 | 0 | **0** | **8** |
 >
-> The return value is exactly the same. Conclusion: an unchanged `agent()` returns on resume with **zero tokens, zero tools, 8 milliseconds.** (See `assets/transcripts/advanced.md` for the raw record, resume Task ID `w7pxch4w6`.)
+> The return value is exactly the same. Conclusion: an unchanged `agent()` comes back on resume in **zero tokens, zero tools, 8 milliseconds.** (See `assets/transcripts/advanced.md` for the raw record, resume Task ID `w7pxch4w6`.)
 
-This property of "the same script + the same args → 100% cache hit, sub-second, zero cost" is precisely the engine of regression testing.
+That property — "the same script + the same args → 100% cache hit, sub-second, zero cost" — is exactly the engine behind regression testing.
 
 ### Three forms of regression testing
 
-**Form one: resume consistency (the cheapest smoke test).** After modifying a workflow, resume **some previous Run** of it with `resumeFromRunId`. The `agent()`s you modified and their downstream will re-run, while the unchanged ones hit the cache in seconds. This lets you verify "did this change break other stages" while **paying only for the changed part**:
+**Form one: resume consistency (the cheapest smoke test).** After you change a workflow, resume **some previous Run** of it with `resumeFromRunId`. The `agent()`s you touched and their downstream will re-run, while the untouched ones hit the cache in seconds. This lets you check "did this change break other stages" while **paying only for the part you changed**:
 
 ```javascript
 // Regression smoke: after changing some agent in acceptance-loop, resume an old Run
@@ -288,11 +288,11 @@ Workflow({
 
 <div class="callout warn">
 
-**The precondition for a resume cache hit is "the same script + the same args"** (section B + Chapter 22). So in a regression test the `args` must be **byte-for-byte identical** to the original run — this is exactly the payoff of 25.4's emphasis on "ban `Date.now()`, pass time via `args`": if the script sneakily uses `Date.now()`, the args differ implicitly each time, the cache never hits, and the regression test degenerates into "a full re-run every time," slow and expensive. **Testability is the reward of a "purely functional script."**
+**The precondition for a resume cache hit is "the same script + the same args"** (section B + Chapter 22). So in a regression test the `args` must be **byte-for-byte identical** to the original run — and this is exactly the payoff of 25.4's insistence on "ban `Date.now()`, pass time via `args`": if the script sneakily uses `Date.now()`, the args quietly differ each time, the cache never hits, and the regression test degenerates into "a full re-run every time," slow and expensive. **Testability is the reward you get for a "purely functional script."**
 
 </div>
 
-**Form two: fixed input + structural assertions (fixture-driven).** Store representative inputs in `_fixtures/`, run the workflow with them, then assert the **structure** of the return value. Because the output of `agent({ schema })` has already passed schema validation at the tool layer, your assertions only need to check "business-level invariants":
+**Form two: fixed input + structural assertions (fixture-driven).** Stash representative inputs in `_fixtures/`, run the workflow against them, then assert the **structure** of the return value. Because the output of `agent({ schema })` has already passed schema validation at the tool layer, your assertions only need to check "business-level invariants":
 
 ```javascript
 // (illustrative, not executed) —— fixture-driven structural assertions (run as a "test workflow")
@@ -324,7 +324,7 @@ log(assertions.length ? `FAIL:\n${assertions.join('\n')}` : 'PASS: all invariant
 return { pass: assertions.length === 0, violations: assertions }
 ```
 
-**Form three: golden-value comparison (golden testing).** For **strongly deterministic** workflows (whose output is itself stable, e.g., pure computation/formatting), store one "manually confirmed correct" return value as the golden value, and compare on regression. Note: for workflows involving natural-language generation, the output naturally fluctuates and isn't suited to a byte-for-byte golden value — for these, form two's **structural/invariant** assertions are more robust.
+**Form three: golden-value comparison (golden testing).** For **strongly deterministic** workflows (whose output is stable on its own, e.g., pure computation/formatting), save one "manually confirmed correct" return value as the golden value and compare against it on regression. Note: for workflows that involve natural-language generation, the output naturally wobbles and doesn't suit a byte-for-byte golden value — for those, form two's **structural/invariant** assertions hold up better.
 
 ### Test organization suggestion
 
@@ -337,34 +337,34 @@ return { pass: assertions.length === 0, violations: assertions }
     └── test-two-stage-review.js  # test workflow (nested-calls the workflow under test + asserts)
 ```
 
-Treat "test workflows" as library members too (with a `test-`-prefixed `name`). They use Chapter 20's `workflow()` to nested-call the workflow under test — **remember nesting is only one layer** (section B), so the test workflow itself must not be nested by a third layer.
+Treat "test workflows" as library members too (with a `test-`-prefixed `name`). They use Chapter 20's `workflow()` to nested-call the workflow under test — **remember nesting is only one layer** (section B), so the test workflow itself must not get nested by a third layer.
 
 ---
 
 ## 25.7 Sharing: A Script Is a File, So Sharing = Shipping a File
 
-The ultimate dividend of "a script is a file": **sharing a Workflow is sharing a `.js` file.** No packaging, no runtime installer — this is in sharp contrast to the systems in Chapter 23 (ccg needs to install hooks into `settings.json` + a Go binary; OMC needs to lay out a `.omc/` directory structure; OmO is an npm package). Native Workflow's unit of sharing is as plain as a single text file.
+The ultimate payoff of "a script is a file": **sharing a Workflow is sharing a `.js` file.** No packaging, no runtime installer — a sharp contrast to the systems in Chapter 23 (ccg needs to install hooks into `settings.json` + a Go binary; OMC needs to lay out a `.omc/` directory structure; OmO is an npm package). Native Workflow's unit of sharing is as plain as a single text file.
 
 ### Three levels of sharing
 
-**Level one: in-repo sharing (team).** Commit `.claude/workflows/` into the project repo. Any colleague who clones the repo can immediately call `{ name: 'two-stage-review' }` — zero install. This is the default way for a team to settle workflows.
+**Level one: in-repo sharing (team).** Commit `.claude/workflows/` into the project repo. Any colleague who clones the repo can call `{ name: 'two-stage-review' }` right away — zero install. This is the default way a team settles workflows.
 
-**Level two: cross-project sharing (personal).** Manage user-level `~/.claude/workflows/` with a dotfiles repo; a new machine clones once, and all projects share it.
+**Level two: cross-project sharing (personal).** Manage user-level `~/.claude/workflows/` with a dotfiles repo; clone it once on a new machine and every project shares it.
 
-**Level three: public sharing (community).** Publish a validated workflow to a public repo, attached with:
-- The script itself (self-contained, no external dependencies — this is something Workflow scripts naturally possess, because they have **no filesystem/Node API**, using only standard JS built-ins + the injected global hooks, see section B hard constraints);
+**Level three: public sharing (community).** Publish a validated workflow to a public repo, and attach:
+- The script itself (self-contained, no external dependencies — something Workflow scripts come with naturally, because they have **no filesystem/Node API**, using only standard JS built-ins + the injected global hooks, see section B hard constraints);
 - A "real run record" proving it runs (follow this book's `assets/transcripts/` approach: paste the Run ID + usage + real output);
 - The argument contract.
 
 <div class="callout tip">
 
-**Self-containment is the superpower of sharing.** Because a Workflow script has **no** `import`, **doesn't touch** the filesystem, and **doesn't depend on** the Node API (section B hard constraint: "no filesystem/Node API," "standard JS built-ins available"), a single `.js` file is complete, portable, and auditable. Receiving someone else's workflow script, you can read at a glance how many agents it dispatches, what schemas it uses, whether it has an unbounded loop — **all of its behavior is in that one file.** This is ideal material for doing Chapter 24's "deconstruction" before filing it into your own library.
+**Self-containment is what makes sharing nearly frictionless.** Because a Workflow script has **no** `import`, **doesn't touch** the filesystem, and **doesn't depend on** the Node API (section B hard constraint: "no filesystem/Node API," "standard JS built-ins available"), a single `.js` file is complete, portable, and auditable on its own. Get someone else's workflow script and you can read at a glance how many agents it dispatches, what schemas it uses, whether it has an unbounded loop — **all of its behavior sits in that one file.** That makes it ideal material for Chapter 24's "deconstruction" before you file it into your own library.
 
 </div>
 
 ### The "finished-product checklist" of a shareable workflow
 
-By this book's standard, a workflow ready to be shared should have:
+By this book's standard, a workflow that's ready to share should have:
 
 | Requirement | Description | This book's corresponding approach |
 |---|---|---|
@@ -392,7 +392,7 @@ flowchart TD
 
 ## 25.8 A Minimal Usable Library Scaffold
 
-Let's converge all the practices of this chapter into a starting scaffold you can **copy directly.** When creating a new project, lay this structure into `.claude/workflows/`:
+Let's pull all of this chapter's practices into a starting scaffold you can **copy straight over.** When you spin up a new project, lay this structure into `.claude/workflows/`:
 
 ```text
 .claude/workflows/
@@ -404,7 +404,7 @@ Let's converge all the practices of this chapter into a starting scaffold you ca
 └── loop/              # loop-category finished products
 ```
 
-`README.md` template (the library index, in the spirit of `manifest.json`):
+`README.md` template (the library index, in the same spirit as `manifest.json`):
 
 ```markdown
 # Workflow Library Index
@@ -430,20 +430,20 @@ Let's converge all the practices of this chapter into a starting scaffold you ca
 Conventions: name = filename; every while has an upper bound; args use a documented contract; changes go through git diff review.
 ```
 
-Starting from this scaffold, your library has, from day one: clear grouping, a self-explanatory index, a parameterized contract, a test slot, and a draft isolation zone. It will grow organically with each new pattern you extract (Chapter 24), rather than becoming a pile of loose parts named `wf1.js`, `test2.js`.
+Start from this scaffold and your library has, from day one: clear grouping, a self-explanatory index, a parameterized contract, a test slot, and a draft isolation zone. It grows organically with each new pattern you extract (Chapter 24), instead of piling up into loose parts named `wf1.js`, `test2.js`.
 
 ---
 
 ## 25.9 Chapter Summary
 
-- **The library's foundation is "a script is a file"**: explore with `{ script }` → land and iterate with `{ scriptPath }` (highest priority) → reuse with `{ name }` after settling. `name` faces consumers, `scriptPath` faces authors.
+- **The library's foundation is "a script is a file"**: explore with `{ script }` → land and iterate with `{ scriptPath }` (highest priority) → reuse with `{ name }` after settling. `name` is for the people who use it, `scriptPath` is for the people who write it.
 - **Directory structure**: under `.claude/workflows/` group by "recipe type" (review/loop/research), put drafts and fixtures under `_`-prefixed directories, one file per workflow with `filename = meta.name`, and `README.md` as the index. Project-level travels with the repo, user-level across projects.
-- **Naming conventions**: `name` uses `action-object` kebab-case with no stale words; `description` states "what it does + scale" in one line (shown in the permission dialog); `whenToUse` helps selection. `meta` must be a pure literal, the description can't interpolate.
-- **Parameterization**: use `args` to turn a hard-coded script into a tool; give defaults, write the doc contract, put argument validation up front. `args` is the only legitimate way around "the ban on `Date.now()`."
-- **Version management**: a script is a file → use Git directly (diff/blame/tag/PR). Codified orchestration, for the first time, makes "an orchestration change" a reviewable diff. For breaking changes prefer "evolve in place + tag"; only use a version suffix when depended on by multiple parties.
-- **Testing**: `resumeFromRunId` resume (real evidence: an unchanged agent hits 0 token/8ms) for precise regression, on the precondition that `args` are byte-for-byte identical; a fixture + invariant assertions (the schema already guarantees structure, the assertions only check business invariants); the test workflow uses `workflow()` to nested-call the workflow under test (only one layer).
+- **Naming conventions**: `name` uses `action-object` kebab-case with no stale words; `description` states "what it does + how big" in one line (shown in the permission dialog); `whenToUse` helps you pick. `meta` must be a pure literal, and the description can't interpolate.
+- **Parameterization**: use `args` to turn a hard-coded script into a tool; give defaults, write the doc contract, put argument validation up front. To get around "the ban on `Date.now()`," `args` is the only legitimate way.
+- **Version management**: a script is a file → use Git directly (diff/blame/tag/PR). Once orchestration is code, "an orchestration change" becomes a reviewable diff for the first time. For breaking changes prefer "evolve in place + tag"; only reach for a version suffix once multiple parties depend on it.
+- **Testing**: use `resumeFromRunId` resume (real evidence: an unchanged agent hits 0 token/8ms) for precise regression, on the precondition that `args` are byte-for-byte identical; a fixture + invariant assertions (the schema already guarantees structure, the assertions only check business invariants); the test workflow uses `workflow()` to nested-call the workflow under test (only one layer).
 - **Sharing = shipping a self-contained `.js` file** (no import/no filesystem/no Node API): in-repo sharing (team, zero install), dotfiles (personal across projects), a public repo + transcript (community).
 
-The next chapter is this book's "complete guide to avoiding pitfalls": flipping all the preceding hard constraints around, enumerating real anti-patterns — and for each, "wrong way → consequence → right way."
+The next chapter is this book's "complete guide to avoiding pitfalls": it flips all the preceding hard constraints around and walks through real anti-patterns — each one as "wrong way → consequence → right way."
 
 > Continue reading: [Chapter 26 · Anti-patterns and Pitfalls](#/en/p5-26)
