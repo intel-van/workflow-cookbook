@@ -35,7 +35,8 @@
 - **模型覆盖是两层（R7 实测补充）**：除 `CLAUDE_CODE_SUBAGENT_MODEL`，本会话还设了 `ANTHROPIC_DEFAULT_HAIKU_MODEL`/`SONNET`/`OPUS`（均 = `claude-opus-4-7[1m]`），把**模型别名**整体重映射。故脚本里 `model:'haiku'` 之所以实跑 Opus，是这两层旋钮叠加的结果——写「成本真相」时应同时点出两层，而非只归因 `CLAUDE_CODE_SUBAGENT_MODEL`。信源 `wf_e8cb23ff-829` + 环境变量。
 - **schema 字段命名歧义——第三方报告、实测未复现（R7）**：第三方称字段名 `ok` 在 GCF 循环里会与「冒烟成功」语义碰撞致误判。R7 做了对照实测（同一「明确错误」的草稿，分别用字段 `ok` 与 `draftIsFactuallyCorrect`），**两者都正确返回 `false`，未复现**该歧义。结论：本书把它写成「字段命名清晰度建议」（用你将分支判断的那个命题去命名字段），**不**断言为硬 bug，引用第三方时标「报告、未复现」。信源 `wf_e8cb23ff-829`。
 - **`agentType` 有校验**：未知值在**生成模型之前**（0 token / 4ms）就抛错并列出全部可用 agent：`agent({agentType}): agent type '…' not found. Available agents: claude, claude-code-guide, codex:codex-rescue, Explore, general-purpose, get-current-datetime, init-architect, Plan, planner, statusline-setup, team-architect, team-qa, team-reviewer, ui-ux-designer`。信源 `wf_a222f20f-0f5`。与 `opts.model`（无校验）形成对比。
-- **resume = 100% 缓存命中**：同脚本 + 同 args 重跑 → 5 个结果完全一致、**0 token / 3ms**（首跑 133,691 token / 32,959ms）。信源 `wf_9c94951d-58c`（首跑 + 续传）。**缓存键的精确组成**（`(prompt, opts)` 中 `schema/model/isolation/agentType` 入键、`label`/`phase` 不入键）**属第三方声称、未核实**——本会话只实测了"同脚本同 args = 100% 命中"，未逐一隔离各字段是否入键（见下方第三方清单同条）。
+- **resume = 100% 缓存命中**：同脚本 + 同 args 重跑 → 5 个结果完全一致、**0 token / 3ms**（首跑 133,691 token / 32,959ms）。信源 `wf_9c94951d-58c`（首跑 + 续传）。
+- **resume 缓存键边界（R8 实测补充，net-new）**：对同一基线 `wf_4ffde230-535`（3 agent / 91,044 token）做受控 resume——**只改某 agent 的 `label`（prompt 不变）→ 0 token 全命中 ⇒ `label` 不入缓存键**；**只改其 `prompt`（label 还原）→ 60,702 token（≈基线 2/3）、改动点之前的 agent 仍命中、该 agent 及下游重跑 ⇒ `prompt` 入键**（后者是前者的正向对照，证明 resume 内容敏感、并非对任何改动都返回 0）。**仍未单独验证**：`schema/model/isolation/agentType` 是否入键、`phase` 是否不入键（见下方第三方清单）。信源 `wf_4ffde230-535` + 两次 resume，记于 `examples-r8.md`。
 - **嵌套 `workflow()`**：`workflow({scriptPath}, {n:21})` 内联跑子工作流、args 透传（子返回 `doubled:42`）；未知具名抛错并列出已注册具名工作流（`bughunt, bughunt-lite, deep-research, plan-hunter, review-branch`）；**两层嵌套抛错**：`workflow() cannot be called from within a child workflow — nesting is limited to one level. Inline the inner script or call its agents directly.`。信源 `wf_2b04881f-6a9`。
 - **subagent 能用 MCP（经 ToolSearch 按需加载）**：默认 `workflow-subagent` 启动时持有 **0 个 `mcp__` 工具**（本机为延迟工具环境），但有 `ToolSearch`——可按需加载并调用。实测 `mcp__context7__resolve-library-id` 端到端跑通，并发现其 schema 要求 `query`+`libraryName` 都必填。信源 `wf_1d4c6a71-56a`（工具自省探针）、`wf_d8aa0772-ced`（端到端）。**结论**：多数工作流无需 MCP（官方 6 例中 4 例零 MCP）；需要时它确实可用。默认 agentType 名 = `workflow-subagent`（per-agent sidecar `agent-<id>.meta.json` 记录）。
 
@@ -53,7 +54,8 @@
 ### 第三方仓库声称——思路可借鉴，但**未独立核实**，写正文须标注「第三方声称、未核实」
 > 以下来自第三方 `claude-code-workflow-creator/api-reference.md`，**不是官方真值**；我本会话**未能触发/隔离**，无法证实或证伪。可借鉴其"思路"，但不得断言为事实。（本轮已把"保留键被拒""remote 禁用""VM 30s 同步超时""model 无提交校验""args 透传""注入全局"等实测复现，移入"已实测确认"。）
 - 错误**类名** `WorkflowAgentCapError` / `WorkflowBudgetExceededError`：官方只描述行为（达 1000 上限 / 预算耗尽会出错），**未给类名**——类名是该仓库说法（我未触发这两个上限）。
-- 并发**下限** `max(2, …)`；**`stallMs` 默认 180000ms、停滞重试≤5 次**；**预算耗尽时在途 agent 完成且结果保留、不再启新 agent**；schema 经 **AJV** 校验、且 subagent 不调用工具时「最多再催两次」；**resume 缓存键** = `schema/model/isolation/agentType`、`label/phase` 不入键（我只实测了"同脚本同 args=100% 命中"，未逐一验证键的组成）；`opts.model` 接受 `'inherit'` 字面量（其语义是否与"省略"完全一致，因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖未隔离）。
+- 并发**下限** `max(2, …)`；**`stallMs` 默认 180000ms、停滞重试≤5 次**；**预算耗尽时在途 agent 完成且结果保留、不再启新 agent**；schema 经 **AJV** 校验、且 subagent 不调用工具时「最多再催两次」。
+- **resume 缓存键**——R8 已实测 `label` **不**入键、`prompt` **入**键（见上方「已实测确认」`wf_4ffde230-535`）；第三方另称 `schema/model/isolation/agentType` 入键、`phase` 不入键，**这几项仍未单独验证**。`opts.model` 接受 `'inherit'` 字面量——R8/R4 已观测被接受、能跑（`wf_28a5d455-300`、line 34），但「精确语义是否等同省略」因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖**仍未隔离**。
 
 ### 校验器 `validate-workflow.mjs`（第三方工具，但其行为我已实测）
 - 它是上述第三方仓库自带的提交前 lint，**我已实跑确认其行为**（合法脚本 `ok … passes`；违规脚本逐条报错——见 `assets/transcripts/validator-r4.md`）。它检查：体积上限、`meta` 存在且为首语句且纯字面量（无展开/模板串/函数调用/保留键、含 name+description）、禁用非确定性调用、宿主 API 警告（require/import/process）、`parallel([agent(…)])` 裸 promise 警告。**注**：它检查的"规则"以官方工具定义 + 我的实测为准；校验器只是把这些规则做成可跑的 lint。
@@ -105,7 +107,7 @@
 - `meta.description`：**一行，显示在权限确认对话框**（authoritative）。
 - `meta.whenToUse`：**显示在工作流列表**（authoritative）。
 - `meta.phases[].model`：**运行时效果未定（本会话无法核实）**。官方工具描述把它说成"某阶段用特定模型 override 时加上"，措辞含糊；第三方仓库则称它**纯展示用、运行时不读**。本会话因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖（见 A2）**未能独立隔离**二者。**安全做法**：真正设模型只信 `agent()` 的 `opts.model`——要某阶段跑 Haiku，就在每个 `agent()` 上写 `model:'haiku'`；`phases[].model` 当"对话框标签"用，别指望它单独生效。（**更正记录**：R3 写"某阶段的模型覆盖（authoritative）"；R4 我一度据第三方仓库改为"纯展示用（权威）"；两者都不严谨，现按"未核实 + 安全做法"陈述。）
-- `opts.model`：覆盖该 agent 模型；官方明确"省略则继承主循环模型"。**无提交/解析期校验这一点我已实测确认**：bogus 字符串 `'totally-not-a-real-model-xyz'` 不在解析期被拒、agent 照常运行（`wf_dace2fc6-966`，见 A2 第 41 行）。第三方仓库另称它接受 `'inherit'` 字面量、且"拼错会在 API 调用时 passthrough 后才失败"——**这两点（`'inherit'` 的精确语义、API 期才失败）标「第三方声称、未核实」**（本会话因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖未能观测 API 期失败）。对比：`agentType` 我也已实测确认有校验（未知值 0 token 抛错并列出可用 agent，`wf_a222f20f-0f5`）。
+- `opts.model`：覆盖该 agent 模型；官方明确"省略则继承主循环模型"。**无提交/解析期校验这一点我已实测确认**：bogus 字符串 `'totally-not-a-real-model-xyz'` 不在解析期被拒、agent 照常运行（`wf_dace2fc6-966`，见 A2 第 41 行）。`'inherit'` 字面量**已实测被接受、能跑**（R8 `wf_28a5d455-300` 返回 `INHERIT_OK`；R4 line 34 亦观测到 `model:'inherit'` 的 agent 正常运行）——但「精确语义是否与省略 `model` 完全一致」因 `CLAUDE_CODE_SUBAGENT_MODEL` 覆盖**仍未隔离**，标「精确语义未核实」。"拼错会在 API 调用时 passthrough 后才失败"仍属第三方声称、未观测。对比：`agentType` 我也已实测确认有校验（未知值 0 token 抛错并列出可用 agent，`wf_a222f20f-0f5`）。
 - `opts.isolation:'worktree'`：**昂贵（~200–500ms 启动 + 磁盘/agent）**；无改动自动清理；**结果返回 worktree 路径与分支**（authoritative）。
 - `opts.agentType`：**与 Agent 工具同一注册表解析**；与 schema 组合时，**自定义 agent 的系统提示会被追加 StructuredOutput 指令**（authoritative）。
 - `budget.spent()`：返回**本回合已花的 output token**（主循环 + 所有工作流**共享池**）；`budget.total` 是**硬上限**，达到后再调 `agent()` 抛错（authoritative，"output token" 正确）。
@@ -168,6 +170,7 @@
 > 并入后，全书唯一 Run ID 由 20（R4 基线主表 17 + R5 3）增至 **23**（+R6 3）。**成本真相**：本会话 `CLAUDE_CODE_SUBAGENT_MODEL=claude-opus-4-7[1m]` 覆盖脚本里的 `model:'haiku'`，故 R5/R6 六跑均按 Opus 计费（R5 三跑≈171.5 万、R6 三跑≈152.1 万 token）。逐项见 `examples-r5.md` / `examples-r6.md`。
 
 > **R7 Phase 0 验证探针** `wf_e8cb23ff-829`（4 agent / 93,026 token / 15,032ms，记于 `examples-r7.md`）：再确认 agentType 校验、`budget.total=null`/`remaining=Infinity`，并实证 `ANTHROPIC_DEFAULT_*_MODEL` 两层覆盖；属**验证用**运行，不并入头条 curated 计数（与 R3 复验组、R6 Phase E 复验同处理）。
+> **R8 Phase 0 验证探针**（记于 `examples-r8.md`）：`wf_72e98fa5-019`（budget/Infinity 序列化/agentType+schema 再确认）、`wf_28a5d455-300`（`model:'inherit'` 被接受 + `workflow()` 未知名列出内置清单 `bughunt/bughunt-lite/deep-research/plan-hunter/review-branch`）、**`wf_4ffde230-535` + 两次受控 resume**（**净新结论**：`label` 不入缓存键 / `prompt` 入键，见 A2）。均属**验证用**运行，不并入头条 curated 计数（curated 维持 23）。
 
 ## D. 四大社区系统精华（来自对各仓库源码的真实阅读，第五部用）
 
