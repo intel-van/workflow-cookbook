@@ -352,3 +352,9 @@ await pipeline(
 下一章，我们把基础篇最后一块拼图补齐：**进度可视化（`phase`/`log`/`/workflows`）、断点续传（`resumeFromRunId`）和预算控制（`budget`）**——让长流水线既看得见、又停得下、还能省着跑。
 
 > 继续阅读：[第 09 章 · 进度·日志·续传·预算](#/zh/p2-09)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

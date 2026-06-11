@@ -284,3 +284,7 @@ Practice checklist:
 **Foundations ends here** — you've now got the whole core of `meta`/`phase`/`agent`/`schema`/`parallel`/`pipeline`/`log`/`resume`/`budget` down. Starting in Part III, we assemble these into genuinely usable recipes, aiming at real runs: **recipes that were actually run carry their Run ID and real usage (see [`assets/transcripts/`](https://github.com/AGI-is-going-to-arrive/workflow-cookbook/tree/main/assets/transcripts)), and illustrative scripts that were not run are clearly marked.**
 
 > Continue reading: [Chapter 10 · Sharded Code Review](#/en/p3-10)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

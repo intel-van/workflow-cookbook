@@ -312,3 +312,7 @@ while (round < 2 && budget.total && budget.remaining() > 60_000) {
 Every step of this chapter is anchored in a real run. Deep research shares its "adversarial falsification" core with Chapter 15's Bug Hunter — a thread Part IV will abstract into a general pattern. Three recipes remain; the next chapter turns to another structure for how multiple independent judgments converge into a conclusion: the judge panel.
 
 > Continue reading: [Chapter 14 · Judge Panel](#/en/p3-14)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

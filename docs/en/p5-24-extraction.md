@@ -942,3 +942,7 @@ Why does this routine keep showing up? Because a single agent has two flaws you 
 In the next chapter, we organize these verified Workflows into a personal library that's **nameable, parameterizable, version-manageable, regression-testable, and shareable.**
 
 > Continue reading: [Chapter 25 · Build Your Own Library](#/en/p5-25)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

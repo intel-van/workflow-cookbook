@@ -628,3 +628,9 @@ const blockers = (review?.issues ?? []).filter(i => i.severity === 'critical')
 纬线的这根单丝——`agent()`——我们已经看到了头。但一根丝织不成花纹。下一章,我们钻进它最有分量的那个选项 `schema`,看「结构化输出」怎么把一群各说各话的 subagent,拧成一条能被代码可靠消费的数据流水线。
 
 > 继续阅读:[第 07 章 · 结构化输出与 Schema](#/zh/p2-07)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

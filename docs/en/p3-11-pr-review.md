@@ -272,3 +272,7 @@ The more **orthogonal** the dimensions are (the less they overlap), the higher t
 In the next chapter we switch to a different form of collaboration: no longer "multiple perspectives looking at the same code," but a **generate-critique-fix loop** of "one writes, one nitpicks, one rewrites based on the nitpicks."
 
 > Continue reading: [Chapter 12 · The Generate-Critique-Fix Loop](#/en/p3-12)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

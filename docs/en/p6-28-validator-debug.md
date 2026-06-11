@@ -353,3 +353,7 @@ The core of validation and debugging is figuring out *which moment the error hap
 Commit the verbatim error text of these two gates to memory, get fluent with the three tools, and you turn "the workflow broke" from "tear it down and start over" into "read the signal, tweak one spot, re-run incrementally."
 
 Continue reading: [Chapter 29 · Example Gallery](#/en/p6-29)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

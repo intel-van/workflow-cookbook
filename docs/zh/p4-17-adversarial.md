@@ -356,3 +356,9 @@ const avgConfidence = votes.reduce((s, v) => s + v.confidence, 0) / votes.length
 下一章，我们把「验证」从「判真伪」往「判完整」推一步——怎么用一个循环，让流水线**反复地生成-批评**，直到一个完整性 agent 判定「再也榨不出新东西了」为止。
 
 > 继续阅读：[第 18 章 · 循环到干与完整性批评](#/zh/p4-18)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

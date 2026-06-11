@@ -127,3 +127,7 @@ This book was inspired by [Yu Yu · claude-code-book](https://github.com/lintsin
 Ready? Turn to [Chapter 01 · What Workflow Is](#/en/p1-01), where we start from "what on earth this thing actually is."
 
 </div>
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

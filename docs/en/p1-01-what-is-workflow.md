@@ -313,3 +313,7 @@ The boundary in one sentence: **if you can draw the task as a flowchart of "what
 The next chapter takes a different angle: instead of the API, we talk about **why** — before Workflow existed, how did people orchestrate multiple agents by hand, and what potholes did they hit — so we can see what "deterministic orchestration" really solves.
 
 > Continue reading: [Chapter 02 · Why Deterministic Orchestration](#/en/p1-02)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

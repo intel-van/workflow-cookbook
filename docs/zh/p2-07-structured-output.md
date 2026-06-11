@@ -564,3 +564,9 @@ log(report)
 下一章，我们把目光从「单个 agent 的产物」抬高到「一组 agent 的编排结构」——`parallel` 的屏障和 `pipeline` 的流水线，到底差在哪里，又该怎么选。
 
 > 继续阅读：[第 08 章 · parallel 屏障 vs pipeline 流水线](#/zh/p2-08)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

@@ -313,3 +313,9 @@ flowchart TD
 下一章，我们钻进那个反复出现的「共享资源池」里最关键的一项——token 预算：怎么用 `budget.total` / `remaining()` 让工作流**根据剩余预算动态调整规模**。
 
 > 继续阅读：[第 21 章 · 动态预算与规模化](#/zh/p4-21)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

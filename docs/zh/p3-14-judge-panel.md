@@ -243,3 +243,9 @@ const final = await agent(
 下一章进入「Bug 猎手」配方：自繁殖的 finder 池流入对抗验证，把一条分支里的潜在缺陷高精度地挖出来。
 
 > 继续阅读：[第 15 章 · Bug 猎手](#/zh/p3-15)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

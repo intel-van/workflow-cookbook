@@ -186,3 +186,7 @@ Four "ignore-them-and-it-really-breaks / really-wastes" red lines, every one bac
 > This page is the map; the body is the terrain. Every pattern and every number traces back, via its link, to its source chapter and the real record in `assets/transcripts/` — if your local testing disagrees with the book, **trust your testing.**
 
 > Continue reading: head back to [Preface: Between Warp and Weft](#/en/00-preface) to re-read the book's through-line, or pick the F.3 scenario closest to your task and go straight into the body.
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

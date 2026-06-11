@@ -350,3 +350,7 @@ It confirms two key points of sharded review:
 The next chapter is its twin: the dimension-sliced multi-dimension PR Review, which we walk through in detail with that real dogfood run (`wf_4c5caabb-b73`), covering the full 26→16 process.
 
 > Continue reading: [Chapter 11 · Multi-dimension PR Review](#/en/p3-11)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

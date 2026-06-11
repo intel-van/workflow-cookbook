@@ -243,3 +243,7 @@ Note that this synthesis agent comes **after the tally**, it doesn't replace it 
 The next chapter steps into the "Bug Hunter" recipe: a self-respawning finder pool flowing into adversarial verification, digging out a branch's latent defects with high precision.
 
 > Continue reading: [Chapter 15 · Bug Hunter](#/en/p3-15)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

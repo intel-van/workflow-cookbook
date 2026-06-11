@@ -564,3 +564,7 @@ The rule for deciding is simple:
 In the next chapter, we raise our gaze from "a single agent's product" to "the orchestration structure of a group of agents" — what exactly the difference is between `parallel`'s barrier and `pipeline`'s pipeline, and how you should choose.
 
 > Continue reading: [Chapter 08 · parallel (Barrier) vs pipeline](#/en/p2-08)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

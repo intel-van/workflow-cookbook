@@ -942,3 +942,9 @@ flowchart LR
 下一章，我们把这些验证过的 Workflow 攒成一个**可命名、可参数化、可版本管理、可回归测试、可分享**的个人库。
 
 > 继续阅读：[第 25 章 · 构建你自己的 Workflow 库](#/zh/p5-25)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

@@ -386,3 +386,7 @@ This skeleton twists the first two chapters of Advanced Patterns into one rope: 
 In the next chapter, we take on a problem you can't dodge when writing files in parallel: when multiple agents must modify code at once, how to keep them from trampling each other — `isolation: 'worktree'`.
 
 > Continue reading: [Chapter 19 · Worktree Isolation](#/en/p4-19)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

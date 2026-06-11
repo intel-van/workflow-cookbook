@@ -448,3 +448,7 @@ Start from this scaffold and your library has, from day one: clear grouping, a s
 The next chapter is this book's "complete guide to avoiding pitfalls": it flips all the preceding hard constraints around and walks through real anti-patterns — each one as "wrong way → consequence → right way."
 
 > Continue reading: [Chapter 26 · Anti-patterns and Pitfalls](#/en/p5-26)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

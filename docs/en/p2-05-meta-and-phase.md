@@ -688,3 +688,7 @@ triage-and-fix
 The warp is tensioned. In the next chapter, we turn our full attention to the **weft** that shuttles through it and does the real work — taking apart every option of `agent(prompt, opts)` (`label`, `schema`, `phase`, `model`, `isolation`, `agentType`) down to the bottom, to see a subagent's whole life from dispatch to return.
 
 > Continue reading: [Chapter 06 · The agent() Reference](#/en/p2-06)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

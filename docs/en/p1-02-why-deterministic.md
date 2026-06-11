@@ -378,3 +378,7 @@ The gap between the two worlds isn't "one written well, one written poorly." It'
 In the next chapter, we widen the lens a bit further: Workflow doesn't exist in isolation. What exactly is its relationship to the four other extension mechanisms — Subagents, Agent Teams, Skills, MCP? When should you use which, and how do you combine them? We'll sort it all out with a "positioning matrix."
 
 > Continue reading: [Chapter 03 · The Positioning Matrix: Five Extension Mechanisms](#/en/p1-03)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

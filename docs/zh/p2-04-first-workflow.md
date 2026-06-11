@@ -273,3 +273,9 @@ schema: { type: 'object', properties: { sum: { type: 'number' } }, required: ['s
 基础篇走到这儿，你已经能跑通、读懂、迭代一个 Workflow 了。接下来三章（05/06/07）把经线（`meta`/`phase`）、纬线核心（`agent()`）和结构化输出（`schema`）一个个讲透，第 08 章再把并发模型钉死。
 
 > 继续阅读：[第 05 章 · meta 与 phase：经线](#/zh/p2-05)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

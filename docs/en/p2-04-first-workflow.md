@@ -273,3 +273,7 @@ schema: { type: 'object', properties: { sum: { type: 'number' } }, required: ['s
 This far into Foundations, you can already run, read, and iterate a Workflow. The next three chapters (05/06/07) walk through the warp (`meta`/`phase`), the weft's core (`agent()`), and structured output (`schema`) one by one, and Chapter 08 nails down the concurrency model.
 
 > Continue reading: [Chapter 05 · meta & phase: The Warp](#/en/p2-05)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

@@ -386,3 +386,9 @@ return { rounds: round, total: unique.length, confirmed }
 下一章，我们要啃一个并行写文件时绕不开的问题：多个 agent 要同时改代码，怎么让它们互不踩脚——`isolation: 'worktree'`。
 
 > 继续阅读：[第 19 章 · Worktree 隔离](#/zh/p4-19)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

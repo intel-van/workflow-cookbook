@@ -743,3 +743,7 @@ The following **really do behave differently across platforms.** This book has *
 ---
 
 > Continue reading: [Appendix C · Best Practices](#/en/app-c)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

@@ -688,3 +688,9 @@ triage-and-fix
 经线已张紧。下一章,我们把目光全部投向那根穿梭其间、真正干活的**纬线**——把 `agent(prompt, opts)` 的每一个选项(`label`、`schema`、`phase`、`model`、`isolation`、`agentType`)拆到见底,看清一个 subagent 从派发到返回的完整一生。
 
 > 继续阅读:[第 06 章 · agent() 完全指南](#/zh/p2-06)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

@@ -356,3 +356,7 @@ Finally, a few common mistakes that make adversarial verification "look the part
 In the next chapter, we push "verification" from "judging true or false" to "judging complete" — how to use a loop to make the pipeline **generate-critique over and over** until a completeness agent rules "nothing new can be squeezed out anymore."
 
 > Continue reading: [Chapter 18 · Loop-Until-Dry & Completeness](#/en/p4-18)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

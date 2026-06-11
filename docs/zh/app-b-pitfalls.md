@@ -743,3 +743,9 @@ const warn2 = '不要用会破坏可重放性的时间/随机 API（如取当前
 ---
 
 > 继续阅读：[附录 C · 最佳实践清单](#/zh/app-c)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

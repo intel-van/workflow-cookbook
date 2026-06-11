@@ -412,3 +412,7 @@ return result
 ```
 
 > If you're ever unsure about a field's semantics, the `WorkflowInput` / `WorkflowOutput` in your local `@anthropic-ai/claude-code/sdk-tools.d.ts` is the final authority; for behavioral details, defer to your own real runs.
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

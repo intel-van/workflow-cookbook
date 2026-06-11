@@ -413,3 +413,7 @@ They're not mutually exclusive — **a truly production-grade quality gate often
 The next chapter steps into the "deep research" recipe: multi-source concurrent retrieval + cross-verification, to dig an open question deep and thorough.
 
 > Continue reading: [Chapter 13 · Deep Research](#/en/p3-13)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

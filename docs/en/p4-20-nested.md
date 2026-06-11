@@ -313,3 +313,7 @@ flowchart TD
 In the next chapter, we dig into the most crucial item in that recurring "shared resource pool" — the token budget: how to use `budget.total` / `remaining()` to make a workflow **dynamically adjust its scale according to the remaining budget.**
 
 > Continue reading: [Chapter 21 · Dynamic Budget & Scaling](#/en/p4-21)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

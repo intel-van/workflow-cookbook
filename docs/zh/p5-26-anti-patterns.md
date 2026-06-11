@@ -501,3 +501,9 @@ flowchart TD
 > 继续阅读：[第 27 章 · 工作流创作流程](#/zh/p6-27)
 >
 > 延伸阅读：[附录 A · API 完整参考](#/zh/app-a) · [附录 B · 陷阱与排错](#/zh/app-b) · [附录 C · 最佳实践清单](#/zh/app-c)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

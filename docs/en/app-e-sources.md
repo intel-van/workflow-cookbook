@@ -180,3 +180,7 @@ flowchart TD
 ---
 
 > **Acknowledgments and boundaries**: thanks to the authors of the four community systems for their exploration before native Workflow. This book is an independent practice summary standing on their shoulders and the official distribution — all errors are the book author's, and all original real data can be re-checked via `assets/transcripts/`. This is a book that will need updating as the feature evolves; when your local testing disagrees with the book, trust your testing.
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

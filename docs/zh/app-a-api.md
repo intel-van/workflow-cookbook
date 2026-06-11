@@ -412,3 +412,9 @@ return result
 ```
 
 > 字段语义要是拿不准，就以你本机 `@anthropic-ai/claude-code/sdk-tools.d.ts` 里的 `WorkflowInput` / `WorkflowOutput` 为最终依据；行为细节，则以你本机真实跑出来的为准。
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

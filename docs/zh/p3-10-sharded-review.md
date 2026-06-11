@@ -350,3 +350,9 @@ const shards = scan.shards
 下一章是它的孪生：按**维度**切的 PR 多维 Review，我们用那次真实 dogfood（`wf_4c5caabb-b73`）详细展开 26→16 的全过程。
 
 > 继续阅读：[第 11 章 · PR 多维 Review](#/zh/p3-11)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

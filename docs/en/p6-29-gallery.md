@@ -393,3 +393,7 @@ With all three pieces seen, let's boil the "reading method" running through them
 This chapter assembled the book's parts into a machine that actually runs. You've now seen them run for real — next, head to the appendix to look up each API's complete signature and boundaries, and settle these intuitions into a reference you can reach for anytime.
 
 > Continue reading: [Appendix A · Complete API Reference](#/en/app-a)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

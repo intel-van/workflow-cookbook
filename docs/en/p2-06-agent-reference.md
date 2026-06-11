@@ -628,3 +628,7 @@ This table is itself a demonstration of "how to choose agent options": **every o
 The single thread of the weft — `agent()` — we've now followed to its end. But one thread weaves no pattern. In the next chapter, we dig into its weightiest option, `schema`, to see how "structured output" pulls a crowd of subagents that each speak their own way into a data pipeline that code can reliably consume.
 
 > Continue reading: [Chapter 07 · Structured Output & Schema](#/en/p2-07)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

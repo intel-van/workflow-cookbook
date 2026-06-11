@@ -225,3 +225,7 @@ Boil this chapter's experience down into a "make your workflow resume-friendly" 
 This chapter closes out Advanced Patterns. From adversarial verification and loop-until-dry to worktree isolation, nesting, dynamic budget, and resume — you've now got all the advanced weapons for running Workflow at production grade. In the next part, we turn our gaze to the community: how the four major orchestration systems "simulated" these capabilities before native Workflow, and which gems are worth rewriting as reusable workflows with `phase`/`schema`.
 
 > Continue reading: [Chapter 23 · Four Systems Compared](#/en/p5-23)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

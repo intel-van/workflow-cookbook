@@ -360,3 +360,7 @@ The three are orthogonal and stackable: one workflow can perfectly well **decide
 The next chapter closes out Advanced Patterns: when a long pipeline is halfway through and you need to change one step, how to **avoid re-running from scratch** — `resumeFromRunId` resume and caching, turning the iron law of "the same script necessarily produces the same execution" into a money-saving tool worth hard cash.
 
 > Continue reading: [Chapter 22 · Resume & Caching](#/en/p4-22)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

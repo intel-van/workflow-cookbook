@@ -214,3 +214,7 @@ This turns "the planner shouldn't touch code" from a **prompt prayer** into a **
 In the next chapter, we turn "how to systematically distill and abstract good ideas out of other people's systems, then rewrite them into your own reusable Workflow with `phase`/`schema`" into a methodology.
 
 > Continue reading: [Chapter 24 · The Art of Extraction](#/en/p5-24)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

@@ -352,3 +352,7 @@ Shape C is `pipeline()`: even a **synchronous throw** in the stage body only mak
 In the next chapter, we put the last piece of Foundations in place: **progress visualization (`phase`/`log`/`/workflows`), resume (`resumeFromRunId`), and budget control (`budget`)** — making a long pipeline visible, stoppable, and cheap to run.
 
 > Continue reading: [Chapter 09 · Progress, Logs, Resume, Budget](#/en/p2-09)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

@@ -214,3 +214,9 @@ function beforeToolCall(tool, args) {
 下一章，我们把「怎么系统地把别人系统里的好想法提炼、抽象出来，再用 `phase`/`schema` 重写成自己能复用的 Workflow」讲成一套方法论。
 
 > 继续阅读：[第 24 章 · 精华提取术](#/zh/p5-24)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

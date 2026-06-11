@@ -501,3 +501,7 @@ With that, Part V "Ecosystem and Borrowing" is complete: Chapter 23 saw clearly 
 > Continue reading: [Chapter 27 · The Authoring Workflow](#/en/p6-27)
 >
 > Further reading: [Appendix A · Full API Reference](#/en/app-a) · [Appendix B · Pitfalls and Troubleshooting](#/en/app-b) · [Appendix C · Best-practices Checklist](#/en/app-c)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

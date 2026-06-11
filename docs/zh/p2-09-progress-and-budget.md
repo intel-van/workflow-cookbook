@@ -284,3 +284,9 @@ while (budget.remaining() > 50_000) { /* ... 派 agent ... */ }
 **基础篇到这里就讲完了**——`meta`/`phase`/`agent`/`schema`/`parallel`/`pipeline`/`log`/`resume`/`budget` 的全部核心，你已经拿下了。从第三部开始，我们把这些拼成真正能用的配方；目标是奔着真实运行去，**已实跑的配方附上 Run ID 和真实用量（见 [`assets/transcripts/`](https://github.com/AGI-is-going-to-arrive/workflow-cookbook/tree/main/assets/transcripts)），没实跑的示意脚本会明确标注**。
 
 > 继续阅读：[第 10 章 · 分片代码审查](#/zh/p3-10)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

@@ -160,3 +160,7 @@ Jump quickly by the English term's first letter (Chinese aliases are in the tabl
 > Companion reading: for field semantics see [Appendix A · Full API Reference](#/en/app-a); for pitfalls and troubleshooting see [Appendix B · Pitfalls & Troubleshooting](#/en/app-b); for the positive checklist see [Appendix C · Best Practices](#/en/app-c).
 
 > Continue reading: [Appendix E · Sources](#/en/app-e)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

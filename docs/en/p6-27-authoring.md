@@ -515,3 +515,7 @@ Boiling "from a one-sentence need to a re-runnable workflow" down into a reusabl
 What comes after the authoring process is "validation & debugging" — once the script is written, how do you reliably pin down problems both before and after it crashes?
 
 > Continue reading: [Chapter 28 · Validation & Debugging](#/en/p6-28)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

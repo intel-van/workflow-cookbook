@@ -280,3 +280,7 @@ But resume has two iron rules (see §A2 / §B2) that are exactly a sweep's desig
 **The Practical Recipes part is now complete.** Part IV turns to the advanced patterns that make these recipes **trustworthy** — adversarial verification, loop until dry, the judge panel, completeness critique.
 
 > Continue reading: [Chapter 17 · Adversarial Verification](#/en/p4-17)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)

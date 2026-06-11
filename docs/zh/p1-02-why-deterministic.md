@@ -378,3 +378,9 @@ return dedupe(verified.filter(v => v.real))
 下一章，我们把视角再放宽一点：Workflow 并不是孤立存在的。它和 Subagents、Agent Teams、Skills、MCP 这四种扩展机制到底是什么关系？什么时候该用哪个、又怎么组合？我们用一张「定位矩阵」彻底说清楚。
 
 > 继续阅读：[第 03 章 · 定位矩阵：五种扩展机制](#/zh/p1-03)
+
+> 📌 中文 README 主版本已移至根目录 [README.md](../../README.md)。
+
+---
+
+[← 返回主 README](../../README.md)

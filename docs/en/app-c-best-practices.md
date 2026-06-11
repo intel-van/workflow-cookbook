@@ -231,3 +231,7 @@ Isolation/Nesting
 > Companion reading: the reverse checklist (pitfalls and troubleshooting) is in [Appendix B · Pitfalls & Troubleshooting](#/en/app-b); for field semantics see [Appendix A · Full API Reference](#/en/app-a); for terms see [Appendix D · Glossary](#/en/app-d).
 
 > Continue reading: [Appendix D · Glossary](#/en/app-d)
+
+---
+
+[← Back to main README](../../README.md) · [中文 README →](../../README.md)
